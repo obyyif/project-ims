@@ -1,0 +1,13 @@
+{
+  "name": "lms-melesat",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix project-ims run dev",
+    "build": "npm --prefix project-ims run build",
+    "start": "npm --prefix project-ims run start"
+  },
+  "workspaces": [
+    "project-ims"
+  ]
+}
