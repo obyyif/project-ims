@@ -6,6 +6,8 @@ import { useState } from "react";
 const initialSchedule = [
   { id: "ppl-2", title: "Kelas XI - PPL 2", time: "06.00 - 09.30", location: "Lab PPL" },
   { id: "ppl-1", title: "Kelas XI - PPL 1", time: "06.00 - 07.00", location: "Kelas Letter U" },
+  { id: "ppl-3", title: "Kelas XI - PPL 3", time: "09.45 - 12.30", location: "Lab PPL" },
+  { id: "ppl-4", title: "Kelas XI - PPL 4", time: "13.00 - 15.45", location: "Ruang Teori" },
 ];
 
 const initialMaterials = [
@@ -20,6 +22,10 @@ export default function DashboardPage() {
   const [materials, setMaterials] = useState(initialMaterials);
   const [activeScheduleEdit, setActiveScheduleEdit] = useState<string | null>(null);
   const [activeMaterialEdit, setActiveMaterialEdit] = useState<string | null>(null);
+  const [showAllSchedules, setShowAllSchedules] = useState(false);
+  const [newScheduleTitle, setNewScheduleTitle] = useState("");
+  const [newScheduleTime, setNewScheduleTime] = useState("");
+  const [newScheduleLocation, setNewScheduleLocation] = useState("");
 
   const handleScheduleChange = (id: string, field: string, value: string) => {
     setSchedule((current) => current.map((item) => (item.id === id ? { ...item, [field]: value } : item)));
@@ -28,6 +34,29 @@ export default function DashboardPage() {
   const handleMaterialChange = (id: string, field: string, value: string) => {
     setMaterials((current) => current.map((item) => (item.id === id ? { ...item, [field]: field === "progress" ? Number(value) : value } : item)));
   };
+
+  const handleAddSchedule = () => {
+    if (!newScheduleTitle || !newScheduleTime || !newScheduleLocation) return;
+    const newId = `schedule-${Date.now()}`;
+    setSchedule((current) => [
+      ...current,
+      {
+        id: newId,
+        title: newScheduleTitle,
+        time: newScheduleTime,
+        location: newScheduleLocation,
+      },
+    ]);
+    setNewScheduleTitle("");
+    setNewScheduleTime("");
+    setNewScheduleLocation("");
+  };
+
+  const handleDeleteSchedule = (id: string) => {
+    setSchedule((current) => current.filter((item) => item.id !== id));
+  };
+
+  const displaySchedule = showAllSchedules ? schedule : schedule.slice(0, 2);
 
   return (
     <main className="min-h-screen bg-sky-50 px-4 py-8 text-slate-900 sm:px-6 sm:py-10">
@@ -62,11 +91,45 @@ export default function DashboardPage() {
               <h2 className="text-xl font-semibold text-slate-950">Jadwal Hari Ini</h2>
               <p className="text-sm text-slate-500">Class Schedule</p>
             </div>
-            <button className="rounded-full border border-sky-100 px-4 py-2 text-sm text-sky-700 transition hover:bg-sky-50">View All</button>
+            <button onClick={() => setShowAllSchedules(!showAllSchedules)} className="rounded-full border border-sky-100 px-4 py-2 text-sm text-sky-700 transition hover:bg-sky-50">
+              {showAllSchedules ? "Sembunyikan" : "View All"}
+            </button>
           </div>
 
-          <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            {schedule.map((item) => (
+          {showAllSchedules && (
+            <div className="mt-6 rounded-3xl bg-sky-50 p-4 border border-sky-100">
+              <h3 className="text-lg font-semibold text-slate-950 mb-4">Tambah Jadwal Baru</h3>
+              <div className="space-y-3 mb-4">
+                <input
+                  type="text"
+                  placeholder="Nama Kelas"
+                  value={newScheduleTitle}
+                  onChange={(e) => setNewScheduleTitle(e.target.value)}
+                  className="w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-sky-500"
+                />
+                <input
+                  type="text"
+                  placeholder="Waktu (contoh: 06.00 - 09.30)"
+                  value={newScheduleTime}
+                  onChange={(e) => setNewScheduleTime(e.target.value)}
+                  className="w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-sky-500"
+                />
+                <input
+                  type="text"
+                  placeholder="Tempat"
+                  value={newScheduleLocation}
+                  onChange={(e) => setNewScheduleLocation(e.target.value)}
+                  className="w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-sky-500"
+                />
+                <button onClick={handleAddSchedule} className="w-full rounded-3xl bg-sky-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-sky-700">
+                  Tambah Jadwal
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className={`mt-6 ${showAllSchedules ? "space-y-4" : "grid gap-4 sm:grid-cols-2"}`}>
+            {displaySchedule.map((item) => (
               <div key={item.id} className="rounded-3xl border border-sky-100 bg-sky-50 p-4 shadow-sm">
                 {activeScheduleEdit === item.id ? (
                   <div className="space-y-3">
@@ -99,9 +162,16 @@ export default function DashboardPage() {
                     <p className="mt-2 text-sm text-slate-500">
                       {item.time} · {item.location}
                     </p>
-                    <button type="button" onClick={() => setActiveScheduleEdit(item.id)} className="mt-4 rounded-3xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-200">
-                      Edit
-                    </button>
+                    <div className="flex gap-3 mt-4">
+                      <button type="button" onClick={() => setActiveScheduleEdit(item.id)} className="flex-1 rounded-3xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-200">
+                        Edit
+                      </button>
+                      {showAllSchedules && (
+                        <button type="button" onClick={() => handleDeleteSchedule(item.id)} className="flex-1 rounded-3xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-100 border border-red-200">
+                          Hapus
+                        </button>
+                      )}
+                    </div>
                   </>
                 )}
               </div>

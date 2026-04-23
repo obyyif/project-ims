@@ -46,15 +46,15 @@ export default function ProfilePage() {
 
           <div className="mt-6 grid grid-cols-2 gap-4 text-center">
             <div className="rounded-3xl bg-sky-50 px-4 py-4 text-slate-900 shadow-sm">
-              <p className="text-xs uppercase tracking-[0.35em] text-slate-500">Level</p>
+              <p className="text-xs uppercase tracking-[0.35em] text-slate-500">Status</p>
               <p className="mt-2 text-lg font-semibold text-slate-950">Guru</p>
             </div>
             <div className="rounded-3xl bg-sky-50 px-4 py-4 text-slate-900 shadow-sm">
-              <p className="text-xs uppercase tracking-[0.35em] text-slate-500">School</p>
+              <p className="text-xs uppercase tracking-[0.35em] text-slate-500">Sekolah</p>
               <p className="mt-2 text-lg font-semibold text-slate-950">SMKN 1 GARUT</p>
             </div>
             <div className="rounded-3xl bg-sky-50 px-4 py-4 text-slate-900 shadow-sm sm:col-span-2">
-              <p className="text-xs uppercase tracking-[0.35em] text-slate-500">Status</p>
+              <p className="text-xs uppercase tracking-[0.35em] text-slate-500"></p>
               <p className="mt-2 text-lg font-semibold text-emerald-600">Active</p>
             </div>
           </div>
@@ -147,7 +147,7 @@ export default function ProfilePage() {
 
         <section className="rounded-4xl bg-white px-6 py-6 shadow-[0_25px_70px_rgba(15,23,42,0.08)] sm:px-8 sm:py-8">
           <div className="mb-4 flex items-center justify-between">
-            <p className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-400">Settings</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-400">Pengaturan</p>
           </div>
           <div className="space-y-3">
             <button
