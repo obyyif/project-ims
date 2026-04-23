@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Providers } from "./providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,19 +14,22 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LMS Melesat",
-  description: "Portal LMS SMKN 1 Garut",
+  title: "LMS Melesat — SMKN 1 Garut",
+  description:
+    "Portal Learning Management System SMKN 1 Garut. Jadwal, materi, absensi, dan manajemen kelas terintegrasi.",
 };
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode; 
+  children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {children}
+    <html lang="id">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-slate-50 text-slate-900`}
+      >
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
