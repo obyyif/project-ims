@@ -1,48 +1,89 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
 
 const roles = ["Siswa", "Guru"];
 
 export default function LoginPage() {
+  const router = useRouter();
   const [activeRole, setActiveRole] = useState("Siswa");
   const [idNumber, setIdNumber] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const validCredentials = {
+    Siswa: { id: "siswa123", password: "melesat123" },
+    Guru: { id: "guru123", password: "melesat123" },
+  };
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!idNumber || !password) {
       setError("ID dan password diperlukan");
+      setSuccess("");
       return;
     }
 
-    setError("");
-    console.log("Login attempt:", { role: activeRole, idNumber, password, rememberMe });
-    // Tambahkan logika autentikasi dan redirect di sini
+    const credential = validCredentials[activeRole as keyof typeof validCredentials];
+    if (idNumber === credential.id && password === credential.password) {
+      setError("");
+      setSuccess(`Login berhasil sebagai ${activeRole}!`);
+      if (activeRole === "Guru") {
+        router.push("/dashboard");
+      }
+      return;
+    }
+
+    setSuccess("");
+    setError("ID atau password salah");
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex items-center justify-center px-4 py-10">
-      <div className="w-full max-w-md">
-        <div className="overflow-hidden rounded-[32px] bg-white shadow-[0_32px_80px_rgba(15,23,42,0.15)]">
-          <div className="relative h-56 bg-slate-200">
-            <img src="https://images.unsplash.com/photo-1549490398-8c3f7b6fa20e?auto=format&fit=crop&w=1200&q=80" alt="School building" className="h-full w-full object-cover" />
-          </div>
-
-          <div className="px-8 py-7">
-            <div className="mb-8 text-center">
-              <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Login</p>
-              <h1 className="mt-4 text-2xl font-semibold text-slate-900">Welcome to SMKN 1 GARUT</h1>
+    <div className="relative min-h-screen overflow-hidden bg-slate-100 px-4 py-8 text-slate-900 sm:px-6 sm:py-10">
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background: "radial-gradient(circle at top left, rgba(14,165,233,0.16), transparent 15%), radial-gradient(circle at bottom right, rgba(59,130,246,0.18), transparent 20%)",
+        }}
+      />
+      <div className="relative mx-auto w-full max-w-lg sm:max-w-xl">
+        <div className="overflow-hidden rounded-4xl bg-white shadow-[0_32px_80px_rgba(15,23,42,0.12)]">
+          <div className="bg-sky-600 px-6 py-8 sm:px-8 sm:py-10">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-white/10 text-white ring-1 ring-white/20">
+                <span className="text-xl font-semibold">LMS</span>
+              </div>
+              <div>
+                <p className="text-sm uppercase tracking-[0.32em] text-sky-200">Selamat Datang</p>
+                <h1 className="mt-2 text-3xl font-semibold text-white sm:text-4xl">Akses LMS Sekarang</h1>
+              </div>
             </div>
-
-            <div className="mb-6 grid grid-cols-2 gap-3 rounded-3xl bg-slate-100 p-1">
+            <p className="mt-5 text-sm leading-6 text-sky-100 sm:text-base">Masuk sebagai siswa atau guru untuk melihat jadwal, materi, dan data kelas Anda.</p>
+            <div className="mt-5 rounded-3xl border border-sky-100 bg-sky-50 p-4 text-sm text-slate-900 sm:text-base">
+              <p className="font-medium text-slate-900">Gunakan kredensial demo:</p>
+              <p>
+                Siswa: ID <span className="font-semibold">siswa123</span> / Password <span className="font-semibold">melesat123</span>
+              </p>
+              <p>
+                Guru: ID <span className="font-semibold">guru123</span> / Password <span className="font-semibold">melesat123</span>
+              </p>
+            </div>
+          </div>
+          <div className="bg-white px-6 py-8 text-slate-950 sm:px-8 sm:py-10">
+            <div className="mb-6 grid grid-cols-2 gap-3 rounded-3xl bg-sky-50 p-1">
               {roles.map((role) => {
                 const isActive = activeRole === role;
                 return (
-                  <button key={role} type="button" onClick={() => setActiveRole(role)} className={`rounded-3xl py-3 text-sm font-medium transition ${isActive ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-900"}`}>
+                  <button
+                    key={role}
+                    type="button"
+                    onClick={() => setActiveRole(role)}
+                    className={`rounded-3xl py-3 text-sm font-medium transition ${isActive ? "bg-sky-600 text-white shadow-sm shadow-sky-200/50" : "text-slate-600 hover:text-slate-900"}`}
+                  >
                     {role}
                   </button>
                 );
@@ -52,7 +93,7 @@ export default function LoginPage() {
             <form className="space-y-5" onSubmit={handleSubmit}>
               <div>
                 <label htmlFor="idNumber" className="mb-3 block text-sm font-medium text-slate-700">
-                  ID Number
+                  Nomor ID
                 </label>
                 <div className="flex items-center gap-3 rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 shadow-sm shadow-slate-200/50">
                   <span className="text-slate-400">
@@ -103,6 +144,7 @@ export default function LoginPage() {
               </div>
 
               {error && <p className="text-sm text-red-500">{error}</p>}
+              {success && <p className="text-sm text-emerald-500">{success}</p>}
 
               <div className="flex items-center justify-between text-sm text-slate-600">
                 <label className="inline-flex items-center gap-2">
@@ -115,12 +157,12 @@ export default function LoginPage() {
               </div>
 
               <button type="submit" className="w-full rounded-3xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-sky-500/20 transition hover:bg-sky-700">
-                Login to Dashboard
+                Login
               </button>
             </form>
 
             <p className="mt-6 text-center text-sm text-slate-500">
-              Butuh Bantuan?{" "}
+              Butuh bantuan?{" "}
               <a href="#" className="font-medium text-sky-600 hover:text-sky-700">
                 Hubungi Admin
               </a>
