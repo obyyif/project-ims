@@ -7,7 +7,7 @@ export default function ProfileSecurityPage() {
         <section className="rounded-4xl bg-white p-6 shadow-[0_25px_70px_rgba(15,23,42,0.08)] sm:p-8">
           <div className="flex items-center justify-between">
             <Link href="/profile" className="text-slate-700 hover:text-slate-900">
-              ← Kembali
+              ←
             </Link>
             <h1 className="text-lg font-semibold text-slate-950">Security & Password</h1>
           </div>
