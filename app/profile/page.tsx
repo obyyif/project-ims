@@ -4,14 +4,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 const initialProfileInfo = [
-  { label: "Date of Birth", value: "3 Feb 2026", sub: "Garut, Indonesia", icon: "📅" },
-  { label: "Address", value: "Jl. Cimanuk No 309", sub: "Garut", icon: "📍" },
-  { label: "Phone Number", value: "+62 812-3456-7890", sub: "Mobile", icon: "📞" },
+  { label: "Tempat Tanggal lahir", value: "3 Feb 2026", sub: "Garut, Indonesia", icon: "📅" },
+  { label: "Alamat", value: "Jl. Cimanuk No 309", sub: "Garut", icon: "📍" },
+  { label: "Nomor Telepon", value: "+62 812-3456-7890", sub: "Mobile", icon: "📞" },
 ];
 
 const initialRecordInfo = [
   { id: "ipk", title: "Current IPK/GPA", value: "3.85 / 4.0", label: "Semester 2", icon: "🎓" },
-  { id: "attendance", title: "Attendance", value: "98.2%", label: "This Academic Year", icon: "✅" },
+  { id: "attendance", title: "Attendance", value: "98.2%", label: " Pendidikan Tahun Ini", icon: "✅" },
 ];
 
 export default function ProfilePage() {
@@ -148,7 +148,6 @@ export default function ProfilePage() {
         <section className="rounded-4xl bg-white px-6 py-6 shadow-[0_25px_70px_rgba(15,23,42,0.08)] sm:px-8 sm:py-8">
           <div className="mb-4 flex items-center justify-between">
             <p className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-400">Settings</p>
-            <span className="text-xs font-semibold uppercase tracking-[0.32em] text-slate-500">Actions</span>
           </div>
           <div className="space-y-3">
             <button
@@ -156,7 +155,7 @@ export default function ProfilePage() {
               onClick={() => router.push("/profile/notifications")}
               className="flex w-full items-center justify-between rounded-3xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-semibold text-slate-900 transition hover:border-slate-300 hover:bg-slate-100"
             >
-              <span>Notifications</span>
+              <span>Notifikasi</span>
               <span>🔔</span>
             </button>
             <button
@@ -164,7 +163,7 @@ export default function ProfilePage() {
               onClick={() => router.push("/profile/security")}
               className="flex w-full items-center justify-between rounded-3xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-semibold text-slate-900 transition hover:border-slate-300 hover:bg-slate-100"
             >
-              <span>Security & Password</span>
+              <span>Password</span>
               <span>🔒</span>
             </button>
             <button
@@ -172,7 +171,7 @@ export default function ProfilePage() {
               onClick={() => router.push("/login")}
               className="flex w-full items-center justify-between rounded-3xl border border-rose-200 bg-rose-50 px-4 py-4 text-sm font-semibold text-rose-700 transition hover:border-rose-300 hover:bg-rose-100"
             >
-              <span>Log Out</span>
+              <span>Keluar</span>
               <span>⏏️</span>
             </button>
           </div>
