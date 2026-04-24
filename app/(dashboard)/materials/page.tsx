@@ -65,6 +65,10 @@ export default function MaterialsPage() {
     };
 
     if (role) fetchMaterials();
+
+    const handleRefresh = () => fetchMaterials();
+    window.addEventListener('refresh-materials', handleRefresh);
+    return () => window.removeEventListener('refresh-materials', handleRefresh);
   }, [role]);
 
   const isTeacher = role === 'teacher';
@@ -82,7 +86,10 @@ export default function MaterialsPage() {
           <p className="text-sm text-slate-400 mt-1">Akses seluruh materi kelas Anda</p>
         </div>
         {isTeacher && (
-          <button className="rounded-2xl bg-sky-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-sky-500/25 transition hover:bg-sky-600 active:scale-[0.98]">
+          <button 
+            onClick={() => window.dispatchEvent(new Event('open-upload-material'))}
+            className="rounded-2xl bg-sky-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-sky-500/25 transition hover:bg-sky-600 active:scale-[0.98]"
+          >
             + Upload Materi
           </button>
         )}
@@ -131,10 +138,10 @@ export default function MaterialsPage() {
             ) : (
               <div className="space-y-2">
                 {mod.items
-                  .filter((item) =>
+                  .filter((item: any) =>
                     item.title.toLowerCase().includes(search.toLowerCase())
                   )
-                  .map((item) => (
+                  .map((item: any) => (
                     <Link
                       key={item.id}
                       href={`/materials/${item.id}`}

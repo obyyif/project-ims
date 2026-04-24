@@ -57,6 +57,9 @@ export default function SchedulePage() {
   if (isLoading) {
     return <div className="text-center py-10 text-slate-400 text-sm">Memuat jadwal...</div>;
   }
+
+  return (
+    <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Jadwal KBM</h1>
         <p className="text-sm text-slate-400 mt-1">Jadwal kegiatan belajar mengajar minggu ini</p>
@@ -121,6 +124,19 @@ export default function SchedulePage() {
                     </span>
                   </div>
                 </div>
+
+                {/* Teacher Action */}
+                {role === 'teacher' && (
+                  <button 
+                    onClick={() => {
+                        // This should open the attendance modal
+                        window.dispatchEvent(new CustomEvent('open-attendance-sheet', { detail: { scheduleId: item.id } }));
+                    }}
+                    className="shrink-0 rounded-xl bg-sky-500 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-sky-500/20 transition hover:bg-sky-600 active:scale-95"
+                  >
+                    Absen
+                  </button>
+                )}
               </div>
             </div>
           ))
