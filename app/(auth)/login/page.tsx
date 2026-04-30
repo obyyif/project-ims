@@ -99,8 +99,8 @@ export default function LoginPage() {
             {/* Demo credentials */}
             <div className="mt-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10 px-4 py-3 text-xs text-white/90">
               <p className="font-semibold text-white mb-1">Demo Login:</p>
-              <p>Siswa: <span className="font-mono font-bold">siswa123</span> / <span className="font-mono font-bold">melesat123</span></p>
-              <p>Guru: <span className="font-mono font-bold">guru123</span> / <span className="font-mono font-bold">melesat123</span></p>
+              <p>Siswa: <span className="font-mono font-bold">siswa1</span> / <span className="font-mono font-bold">password123</span></p>
+              <p>Guru: <span className="font-mono font-bold">guru1</span> / <span className="font-mono font-bold">password123</span></p>
             </div>
           </div>
 
@@ -131,7 +131,7 @@ export default function LoginPage() {
                   htmlFor="idNumber"
                   className="mb-2 block text-sm font-medium text-slate-700"
                 >
-                  {activeRole === "Guru" ? "NIP / Email" : "NIS / NISN"}
+                  {activeRole === "Guru" ? "Username / NIP" : "Username / NISN"}
                 </label>
                 <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 transition-all focus-within:border-sky-400 focus-within:bg-white focus-within:shadow-[0_0_0_3px_rgba(14,165,233,0.1)]">
                   <svg
@@ -149,8 +149,8 @@ export default function LoginPage() {
                   <input
                     id="idNumber"
                     type="text"
-                    autoComplete="username"
-                    placeholder="Masukkan ID"
+                    autoComplete="off"
+                    placeholder={activeRole === "Guru" ? "Contoh: guru1" : "Contoh: siswa1"}
                     value={idNumber}
                     onChange={(e) => setIdNumber(e.target.value)}
                     className="w-full bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
