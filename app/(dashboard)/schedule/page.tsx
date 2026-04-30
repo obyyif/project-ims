@@ -17,7 +17,7 @@ const colorMap: Record<string, string> = {
 export default function SchedulePage() {
   const { role } = useAuth();
   const [activeDay, setActiveDay] = useState("Senin");
-  const [scheduleData, setScheduleData] = useState<any[]>([]);
+  const [scheduleData, setScheduleData] = useState<{ id: string; day: string; title: string; time: string; location: string; subject: string; teacher: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -33,12 +33,12 @@ export default function SchedulePage() {
         if (response.data && response.data.data) {
           const mapped = response.data.data.map((item: any) => ({
             id: item.id,
-            day: item.day, // "Senin", "Selasa", dll
+            day: item.day,
             title: role === "teacher" ? `Kelas ${item.classroom.name}` : `Pelajaran ${item.subject.name}`,
             time: `${item.start_time.substring(0,5)} - ${item.end_time.substring(0,5)}`,
-            location: "TBA", // Assuming not explicitly provided in basic API
+            location: item.room?.name || "Belum ditentukan",
             subject: item.subject.name,
-            teacher: role === "teacher" ? "Anda" : item.teacher.account.name,
+            teacher: role === "teacher" ? "Anda" : (item.teacher?.name || "Guru"),
           }));
           setScheduleData(mapped);
         }
