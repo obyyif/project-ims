@@ -1,19 +1,10 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import Cookies from "js-cookie";
+import type { UserData, UserRole } from "@/types/api";
 
-export type UserRole = "teacher" | "student" | "super_admin";
-
-export interface UserData {
-  id: string;
-  name: string;
-  email?: string;
-  nisn?: string;
-  nip?: string;
-  school?: string;
-  [key: string]: any;
-}
+export type { UserRole, UserData };
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -26,6 +17,18 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Cookie config — secure defaults
+const COOKIE_OPTIONS: Cookies.CookieAttributes = {
+  expires: 7,
+  sameSite: "lax",
+  secure: typeof window !== "undefined" && window.location.protocol === "https:",
+  path: "/",
+};
+
+// Session storage key (not localStorage — clears on tab close for sensitive data)
+const SESSION_USER_KEY = "lms_user";
+const SESSION_ROLE_KEY = "lms_role";
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [user, setUser] = useState<UserData | null>(null);
@@ -33,20 +36,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    // Check initial auth state from cookies / localstorage
     const checkAuth = () => {
-      const token = Cookies.get("lms_token");
-      const storedUser = localStorage.getItem("lms_user");
-      const storedRole = localStorage.getItem("lms_role");
+      try {
+        const token = Cookies.get("lms_token");
+        const storedUser = sessionStorage.getItem(SESSION_USER_KEY);
+        const storedRole = sessionStorage.getItem(SESSION_ROLE_KEY);
 
-      if (token && storedUser && storedRole) {
-        setIsAuthenticated(true);
-        try {
+        if (token && storedUser && storedRole) {
+          setIsAuthenticated(true);
           setUser(JSON.parse(storedUser));
           setRole(storedRole as UserRole);
-        } catch (e) {
-          console.error("Failed to parse user data", e);
+        } else if (token) {
+          // Token exists but no session data — user refreshed page
+          // Keep authenticated, data will be re-fetched or cleared
+          // For backward compat, also check localStorage
+          const legacyUser = localStorage.getItem("lms_user");
+          const legacyRole = localStorage.getItem("lms_role");
+          if (legacyUser && legacyRole) {
+            setIsAuthenticated(true);
+            setUser(JSON.parse(legacyUser));
+            setRole(legacyRole as UserRole);
+            // Migrate to sessionStorage
+            sessionStorage.setItem(SESSION_USER_KEY, legacyUser);
+            sessionStorage.setItem(SESSION_ROLE_KEY, legacyRole);
+            // Clean up localStorage (sensitive data shouldn't persist)
+            localStorage.removeItem("lms_user");
+            localStorage.removeItem("lms_role");
+          }
         }
+      } catch (e) {
+        console.error("Failed to restore auth state", e);
+        // Clear corrupted data
+        Cookies.remove("lms_token");
+        sessionStorage.removeItem(SESSION_USER_KEY);
+        sessionStorage.removeItem(SESSION_ROLE_KEY);
       }
       setIsLoading(false);
     };
@@ -54,25 +77,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkAuth();
   }, []);
 
-  const login = (token: string, newRole: UserRole, newUserData: UserData) => {
-    Cookies.set("lms_token", token, { expires: 7 }); // 7 days
-    localStorage.setItem("lms_user", JSON.stringify(newUserData));
-    localStorage.setItem("lms_role", newRole);
+  const login = useCallback((token: string, newRole: UserRole, newUserData: UserData) => {
+    Cookies.set("lms_token", token, COOKIE_OPTIONS);
+    // Store non-sensitive user display data in sessionStorage
+    sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(newUserData));
+    sessionStorage.setItem(SESSION_ROLE_KEY, newRole);
 
     setIsAuthenticated(true);
     setRole(newRole);
     setUser(newUserData);
-  };
+  }, []);
 
-  const logout = () => {
-    Cookies.remove("lms_token");
+  const logout = useCallback(() => {
+    Cookies.remove("lms_token", { path: "/" });
+    sessionStorage.removeItem(SESSION_USER_KEY);
+    sessionStorage.removeItem(SESSION_ROLE_KEY);
+    // Also clean legacy localStorage
     localStorage.removeItem("lms_user");
     localStorage.removeItem("lms_role");
 
     setIsAuthenticated(false);
     setRole(null);
     setUser(null);
-  };
+  }, []);
 
   return (
     <AuthContext.Provider value={{ isAuthenticated, user, role, login, logout, isLoading }}>
