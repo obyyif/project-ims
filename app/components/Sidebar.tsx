@@ -53,7 +53,7 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
       {/* Logo */}
       <div className={`flex items-center gap-3 px-4 pt-6 pb-2 ${collapsed ? "justify-center px-2" : ""}`}>
         <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-2xl">
-          <Image src="/logo-smkn1garut.png" alt="SMKN 1 Garut" fill className="object-cover" />
+          <Image src="/logo-smkn1garut.png" alt="SMKN 1 Garut" fill sizes="40px" className="object-cover" />
         </div>
         {!collapsed && (
           <div className="min-w-0">
@@ -183,7 +183,7 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
         <div className="flex flex-1 flex-col overflow-hidden">
           <div className="flex items-center gap-3 px-4 pt-6 pb-2">
             <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-2xl">
-              <Image src="/logo-smkn1garut.png" alt="SMKN 1 Garut" fill className="object-cover" />
+              <Image src="/logo-smkn1garut.png" alt="SMKN 1 Garut" fill sizes="40px" className="object-cover" />
             </div>
             <div className="min-w-0">
               <p className="text-sm font-bold text-slate-900 leading-tight truncate">LMS Melesat</p>
