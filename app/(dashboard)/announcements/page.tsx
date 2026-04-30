@@ -24,13 +24,15 @@ export default function AnnouncementsPage() {
   const isTeacher = role === "teacher";
 
   const fetchAnnouncements = async () => {
+    setIsLoading(true);
     try {
       const endpoint = isTeacher ? "/teacher/announcements" : "/student/announcements";
       const res = await api.get(endpoint);
       setAnnouncements(res.data?.data || []);
       setError("");
-    } catch {
-      setError("Gagal memuat pengumuman.");
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      setError(msg || "Gagal memuat pengumuman.");
     } finally {
       setIsLoading(false);
     }
@@ -38,6 +40,7 @@ export default function AnnouncementsPage() {
 
   useEffect(() => {
     if (role) fetchAnnouncements();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [role]);
 
   const handleCreate = async () => {
