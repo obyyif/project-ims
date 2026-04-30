@@ -8,6 +8,7 @@ import type { DashboardStat } from "@/types/api";
 
 export default function DashboardPage() {
   const { user, role } = useAuth();
+  const isTeacher = role === "teacher";
   const currentHour = new Date().getHours();
   const greeting =
     currentHour < 12 ? "Selamat Pagi" : currentHour < 17 ? "Selamat Siang" : "Selamat Malam";
@@ -129,7 +130,13 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2">
-          {todaySchedule.map((item) => (
+          {todaySchedule.length === 0 ? (
+            <div className="col-span-full rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-8 text-center">
+              <p className="text-2xl mb-2">📅</p>
+              <p className="text-sm font-semibold text-slate-500">Tidak ada jadwal hari ini</p>
+              <p className="text-xs text-slate-400 mt-1">Nikmati waktu luang Anda!</p>
+            </div>
+          ) : todaySchedule.map((item) => (
             <div
               key={item.id}
               className="group rounded-2xl border border-slate-100 bg-slate-50/50 p-4 transition-all hover:border-sky-100 hover:bg-sky-50/30 hover:-translate-y-0.5"
@@ -165,7 +172,13 @@ export default function DashboardPage() {
         </div>
 
         <div className="space-y-3">
-          {recentMaterials.map((item) => (
+          {recentMaterials.length === 0 ? (
+            <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-8 text-center">
+              <p className="text-2xl mb-2">📄</p>
+              <p className="text-sm font-semibold text-slate-500">Belum ada materi terbaru</p>
+              <p className="text-xs text-slate-400 mt-1">{isTeacher ? "Upload materi untuk kelas Anda" : "Materi baru akan muncul di sini"}</p>
+            </div>
+          ) : recentMaterials.map((item) => (
             <div
               key={item.id}
               className="flex items-center gap-4 rounded-2xl border border-slate-100 p-4 transition-all hover:border-sky-100 hover:bg-sky-50/30"
