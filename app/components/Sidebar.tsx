@@ -12,7 +12,17 @@ const teacherNav = [
   { label: "Kelas", href: "/classroom", icon: UsersIcon },
   { label: "Mata Pelajaran", href: "/subjects", icon: AcademicIcon },
   { label: "Tugas", href: "/assignments", icon: TaskIcon },
-  { label: "Pesan", href: "/messages", icon: ChatIcon },
+  { label: "Pengumuman", href: "/announcements", icon: ChatIcon },
+];
+
+const studentNav = [
+  { label: "Dashboard", href: "/", icon: HomeIcon },
+  { label: "Jadwal", href: "/schedule", icon: CalendarIcon },
+  { label: "Materi", href: "/materials", icon: BookIcon },
+  { label: "Kehadiran", href: "/attendance", icon: ClipboardIcon },
+  { label: "Kelas Saya", href: "/classroom", icon: UsersIcon },
+  { label: "Tugas", href: "/assignments", icon: TaskIcon },
+  { label: "Pengumuman", href: "/announcements", icon: ChatIcon },
 ];
 
 const bottomLinks = [
@@ -28,7 +38,9 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { user, role, logout } = useAuth();
+
+  const navItems = role === "teacher" ? teacherNav : studentNav;
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
@@ -86,7 +98,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-300">
             Menu Utama
           </p>
-          {teacherNav.map((item) => {
+          {navItems.map((item) => {
             const active = isActive(item.href);
             return (
               <Link

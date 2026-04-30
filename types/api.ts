@@ -1,11 +1,9 @@
 /**
  * API Response & Entity Types for LMS Melesat
- *
- * Type definitions matching the selaju-system backend API responses.
- * Keep in sync with backend models and API resources.
+ * Keep in sync with selaju-system backend models.
  */
 
-// ── Base Types ──────────────────────────────────────────────────────────────
+// ── Base Types ───────────────────────────────────────────────────────────────
 
 export interface ApiResponse<T> {
   data: T;
@@ -14,18 +12,17 @@ export interface ApiResponse<T> {
 
 export interface PaginatedResponse<T> {
   data: T[];
-  total: number;
-  current_page?: number;
-  last_page?: number;
-  per_page?: number;
+  meta?: {
+    current_page: number;
+    last_page: number;
+    total: number;
+  };
 }
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
 
 export interface LoginRequest {
-  email?: string;
-  nisn?: string;
-  nip?: string;
+  login: string;
   password: string;
 }
 
@@ -41,10 +38,10 @@ export interface UserData {
   id: string;
   name: string;
   email?: string;
+  username?: string;
   nisn?: string;
   nip?: string;
   photo?: string;
-  school?: string;
 }
 
 // ── LMS Entities ─────────────────────────────────────────────────────────────
@@ -53,55 +50,43 @@ export interface School {
   id: string;
   name: string;
   address?: string;
-  created_at: string;
-  updated_at: string;
 }
 
 export interface Generation {
   id: string;
   name: string;
   is_current: boolean;
-  created_at: string;
-  updated_at: string;
 }
 
 export interface Teacher {
   id: string;
   name: string;
   nip: string;
-  email?: string;
-  phone?: string;
-  school_id?: string;
+  account_id?: string;
+  account?: { name: string; email?: string };
   school?: School;
-  created_at: string;
-  updated_at: string;
 }
 
 export interface Student {
   id: string;
   name: string;
-  nisn: string;
-  email?: string;
-  phone?: string;
-  school_id?: string;
-  generation_id?: string;
+  student_number?: string;
+  national_id?: string;
+  gender?: "L" | "P";
   school?: School;
-  generation?: Generation;
-  created_at: string;
-  updated_at: string;
 }
 
 export interface Classroom {
   id: string;
   name: string;
-  level: string;
+  level?: string;
   major?: string;
-  teacher_id?: string;
+  group_number?: string;
+  slug?: string;
+  academic_year?: string;
   teacher?: Teacher;
   students?: Student[];
   students_count?: number;
-  created_at: string;
-  updated_at: string;
 }
 
 export interface Subject {
@@ -110,16 +95,13 @@ export interface Subject {
   code?: string;
   type?: string;
   description?: string;
-  created_at: string;
-  updated_at: string;
 }
 
 export interface Room {
   id: string;
   name: string;
+  building?: string;
   capacity?: number;
-  created_at: string;
-  updated_at: string;
 }
 
 export interface Schedule {
@@ -135,19 +117,19 @@ export interface Schedule {
   subject: Subject;
   teacher: Teacher;
   room?: Room;
-  created_at: string;
-  updated_at: string;
 }
 
-export interface Material {
+export interface CourseMaterial {
   id: string;
   title: string;
   description?: string;
   file_path?: string;
-  file_name?: string;
+  original_filename?: string;
   file_size?: number;
-  link?: string;
-  schedule_id?: string;
+  file_type?: string;
+  is_published: boolean;
+  teacher?: Teacher;
+  classroom?: Classroom;
   schedule?: Schedule;
   created_at: string;
   updated_at: string;
@@ -157,11 +139,69 @@ export interface Attendance {
   id: string;
   schedule_id: string;
   student_id: string;
-  status: "present" | "absent" | "late" | "excused";
+  status: AttendanceStatus;
   date: string;
-  notes?: string;
   schedule?: Schedule;
   student?: Student;
+}
+
+export type AttendanceStatus = "present" | "absent" | "late" | "excused";
+
+// ── Assignments ──────────────────────────────────────────────────────────────
+
+export type AssignmentType = "homework" | "project" | "exam" | "quiz";
+export type SubmissionStatus = "pending" | "submitted" | "graded" | "late";
+
+export interface Assignment {
+  id: number;
+  teacher_id: string;
+  classroom_id: string;
+  subject_id: string;
+  title: string;
+  description?: string;
+  due_date: string;
+  max_score: number;
+  type: AssignmentType;
+  is_published: boolean;
+  submissions_count?: number;
+  my_status?: SubmissionStatus;
+  subject?: Subject;
+  classroom?: Classroom;
+  teacher?: Teacher;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AssignmentSubmission {
+  id: number;
+  assignment_id: number;
+  student_id: string;
+  file_path?: string;
+  original_filename?: string;
+  file_size?: number;
+  notes?: string;
+  score?: number;
+  status: SubmissionStatus;
+  submitted_at?: string;
+  graded_at?: string;
+  student?: Student;
+  assignment?: Assignment;
+}
+
+// ── Announcements ────────────────────────────────────────────────────────────
+
+export type AnnouncementPriority = "normal" | "important" | "urgent";
+
+export interface Announcement {
+  id: number;
+  author_id: string;
+  classroom_id?: string;
+  title: string;
+  body: string;
+  priority: AnnouncementPriority;
+  is_pinned: boolean;
+  author?: { username?: string; email?: string };
+  classroom?: Classroom;
   created_at: string;
   updated_at: string;
 }
@@ -175,23 +215,4 @@ export interface DashboardStat {
   color: string;
   bg: string;
   icon: string;
-}
-
-// ── Component Props ──────────────────────────────────────────────────────────
-
-export interface ScheduleCardProps {
-  id: string;
-  title: string;
-  time: string;
-  location: string;
-  subject: string;
-  color: string;
-}
-
-export interface MaterialCardProps {
-  id: string;
-  title: string;
-  subject: string;
-  date: string;
-  type: "PDF" | "Link" | "Video";
 }
