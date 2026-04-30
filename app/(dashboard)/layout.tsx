@@ -12,7 +12,8 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
@@ -34,21 +35,25 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
-      {/* Sidebar */}
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <div className="flex h-screen overflow-hidden bg-slate-50">
+      {/* Sidebar — handles its own collapsed/expanded + mobile drawer */}
+      <Sidebar
+        collapsed={sidebarCollapsed}
+        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+        mobileOpen={mobileOpen}
+        onMobileClose={() => setMobileOpen(false)}
+      />
 
-      {/* Main content area */}
-      <div className="flex flex-1 flex-col min-w-0">
-        {/* Top bar */}
-        <TopBar onMenuClick={() => setSidebarOpen(true)} />
+      {/* Content area — fills remaining width */}
+      <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
+        <TopBar onMenuClick={() => setMobileOpen(true)} />
 
-        {/* Page content */}
-        <main className="flex-1 px-4 py-6 pb-24 md:px-8 md:py-8 md:pb-8">
-          <div className="mx-auto max-w-7xl animate-fade-up">
+        {/* Page content — scrollable, full width */}
+        <div className="flex-1 overflow-y-auto px-4 py-6 pb-24 md:px-8 md:py-8 md:pb-8">
+          <div className="animate-fade-up">
             {children}
           </div>
-        </main>
+        </div>
       </div>
 
       {/* Mobile bottom nav */}
