@@ -119,14 +119,20 @@ export interface Schedule {
   room?: Room;
 }
 
+export type MaterialCategory = "document" | "image" | "video" | "other";
+
 export interface CourseMaterial {
   id: string;
   title: string;
   description?: string;
   file_path?: string;
+  file_url?: string;
+  download_url?: string;
+  subtitle_url?: string;
   original_filename?: string;
   file_size?: number;
   file_type?: string;
+  category: MaterialCategory;
   is_published: boolean;
   teacher?: Teacher;
   classroom?: Classroom;
