@@ -145,154 +145,156 @@ function UploadModal({ open, onClose, onSuccess }: { open: boolean; onClose: () 
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={handleClose}>
-      {/* Dark scrim */}
-      <div className="absolute inset-0 bg-black/50" />
+      <>
+        {/* Overlay */}
+        <div
+          className="fixed inset-0 z-[60] bg-black/60"
+          onClick={handleClose}
+        />
 
-      {/* Modal */}
-      <div
-        className="relative w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Close */}
-        <button onClick={handleClose} className="absolute right-4 top-4 text-slate-400 hover:text-slate-600 transition">
-          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
-        </button>
+        {/* Modal */}
+        <div className="fixed inset-0 z-[61] flex items-center justify-center p-4 pointer-events-none">
+          <div className="pointer-events-auto w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            {/* Close */}
+            <button onClick={handleClose} className="absolute right-4 top-4 text-slate-400 hover:text-slate-600 transition">
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
+            </button>
 
-        <h2 className="text-lg font-bold text-slate-900 mb-5">Upload Materi Baru</h2>
+            <h2 className="text-lg font-bold text-slate-900 mb-5">Upload Materi Baru</h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Drag & Drop Zone */}
-          <div
-            className={`relative rounded-2xl border-2 border-dashed transition-all p-6 text-center cursor-pointer
-              ${dragOver ? "border-sky-400 bg-sky-50/50" : file ? "border-emerald-300 bg-emerald-50/30" : "border-slate-200 bg-slate-50/50 hover:border-sky-300"}`}
-            onClick={() => fileRef.current?.click()}
-            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-            onDragLeave={() => setDragOver(false)}
-            onDrop={handleFileDrop}
-          >
-            <input ref={fileRef} type="file" className="hidden" onChange={handleFileSelect} />
-            {file ? (
-              <div className="space-y-2">
-                <div className="flex items-center justify-center gap-2">
-                  <span className="text-2xl">{catConfig[detectedCategory || "other"].icon}</span>
-                  <span className={`rounded-xl px-2.5 py-1 text-[10px] font-bold uppercase ${catConfig[detectedCategory || "other"].bg} ${catConfig[detectedCategory || "other"].color}`}>
-                    {catConfig[detectedCategory || "other"].label}
-                  </span>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Drag & Drop Zone */}
+              <div
+                className={`relative rounded-2xl border-2 border-dashed transition-all p-6 text-center cursor-pointer
+                  ${dragOver ? "border-sky-400 bg-sky-50/50" : file ? "border-emerald-300 bg-emerald-50/30" : "border-slate-200 bg-slate-50/50 hover:border-sky-300"}`}
+                onClick={() => fileRef.current?.click()}
+                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={handleFileDrop}
+              >
+                <input ref={fileRef} type="file" className="hidden" onChange={handleFileSelect} />
+                {file ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-2xl">{catConfig[detectedCategory || "other"].icon}</span>
+                      <span className={`rounded-xl px-2.5 py-1 text-[10px] font-bold uppercase ${catConfig[detectedCategory || "other"].bg} ${catConfig[detectedCategory || "other"].color}`}>
+                        {catConfig[detectedCategory || "other"].label}
+                      </span>
+                    </div>
+                    <p className="text-sm font-semibold text-slate-700 truncate">{file.name}</p>
+                    <p className="text-xs text-slate-400">{formatFileSize(file.size)}</p>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); setFile(null); setSubtitle(null); }}
+                      className="text-xs text-rose-500 hover:text-rose-600 font-semibold"
+                    >
+                      Ganti file
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="text-4xl">📂</div>
+                    <p className="text-sm font-semibold text-slate-500">Drag & drop file atau klik untuk memilih</p>
+                    <p className="text-xs text-slate-400">PDF, Word, Excel, Gambar, Video, ZIP — maks 200MB</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Subtitle (video only) */}
+              {isVideo && (
+                <div className="rounded-2xl border border-purple-200 bg-purple-50/30 p-4">
+                  <p className="text-xs font-bold text-purple-600 mb-2">🎵 Subtitle (Opsional)</p>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => subtitleRef.current?.click()}
+                      className="rounded-xl bg-purple-100 px-3 py-1.5 text-xs font-semibold text-purple-700 hover:bg-purple-200 transition"
+                    >
+                      {subtitle ? "Ganti Subtitle" : "Pilih File .vtt / .srt"}
+                    </button>
+                    {subtitle && <span className="text-xs text-purple-600 truncate">{subtitle.name}</span>}
+                    <input
+                      ref={subtitleRef}
+                      type="file"
+                      accept=".vtt,.srt"
+                      className="hidden"
+                      onChange={(e) => setSubtitle(e.target.files?.[0] || null)}
+                    />
+                  </div>
                 </div>
-                <p className="text-sm font-semibold text-slate-700 truncate">{file.name}</p>
-                <p className="text-xs text-slate-400">{formatFileSize(file.size)}</p>
-                <button
-                  type="button"
-                  onClick={(e) => { e.stopPropagation(); setFile(null); setSubtitle(null); }}
-                  className="text-xs text-rose-500 hover:text-rose-600 font-semibold"
-                >
-                  Ganti file
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <div className="text-4xl">📂</div>
-                <p className="text-sm font-semibold text-slate-500">Drag & drop file atau klik untuk memilih</p>
-                <p className="text-xs text-slate-400">PDF, Word, Excel, Gambar, Video, ZIP — maks 200MB</p>
-              </div>
-            )}
-          </div>
+              )}
 
-          {/* Subtitle (video only) */}
-          {isVideo && (
-            <div className="rounded-2xl border border-purple-200 bg-purple-50/30 p-4">
-              <p className="text-xs font-bold text-purple-600 mb-2">🎵 Subtitle (Opsional)</p>
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => subtitleRef.current?.click()}
-                  className="rounded-xl bg-purple-100 px-3 py-1.5 text-xs font-semibold text-purple-700 hover:bg-purple-200 transition"
-                >
-                  {subtitle ? "Ganti Subtitle" : "Pilih File .vtt / .srt"}
-                </button>
-                {subtitle && <span className="text-xs text-purple-600 truncate">{subtitle.name}</span>}
+              {/* Title */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Judul Materi *</label>
                 <input
-                  ref={subtitleRef}
-                  type="file"
-                  accept=".vtt,.srt"
-                  className="hidden"
-                  onChange={(e) => setSubtitle(e.target.files?.[0] || null)}
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Contoh: Modul HTML & CSS"
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-sky-400 focus:bg-white focus:outline-none transition"
+                  required
                 />
               </div>
-            </div>
-          )}
 
-          {/* Title */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Judul Materi *</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Contoh: Modul HTML & CSS"
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-sky-400 focus:bg-white focus:outline-none transition"
-              required
-            />
+              {/* Description */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Deskripsi</label>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Penjelasan singkat tentang materi..."
+                  rows={3}
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-sky-400 focus:bg-white focus:outline-none transition resize-none"
+                />
+              </div>
+
+              {/* Classroom */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Kelas Tujuan *</label>
+                <select
+                  value={classroomId}
+                  onChange={(e) => setClassroomId(e.target.value)}
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:border-sky-400 focus:bg-white focus:outline-none transition"
+                  required
+                >
+                  <option value="">Pilih kelas...</option>
+                  {classrooms.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Error */}
+              {error && (
+                <div className="rounded-xl bg-rose-50 border border-rose-200 px-4 py-2.5 text-xs text-rose-600 font-medium">
+                  {error}
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  className="flex-1 rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting || !file || !title || !classroomId}
+                  className="flex-1 rounded-2xl bg-sky-500 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-sky-500/25 transition hover:bg-sky-600 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {submitting ? "Mengupload..." : "Upload Materi"}
+                </button>
+              </div>
+            </form>
           </div>
-
-          {/* Description */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Deskripsi</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Penjelasan singkat tentang materi..."
-              rows={3}
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-sky-400 focus:bg-white focus:outline-none transition resize-none"
-            />
-          </div>
-
-          {/* Classroom */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Kelas Tujuan *</label>
-            <select
-              value={classroomId}
-              onChange={(e) => setClassroomId(e.target.value)}
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:border-sky-400 focus:bg-white focus:outline-none transition"
-              required
-            >
-              <option value="">Pilih kelas...</option>
-              {classrooms.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Error */}
-          {error && (
-            <div className="rounded-xl bg-rose-50 border border-rose-200 px-4 py-2.5 text-xs text-rose-600 font-medium">
-              {error}
-            </div>
-          )}
-
-          {/* Actions */}
-          <div className="flex gap-3 pt-2">
-            <button
-              type="button"
-              onClick={handleClose}
-              className="flex-1 rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition"
-            >
-              Batal
-            </button>
-            <button
-              type="submit"
-              disabled={submitting || !file || !title || !classroomId}
-              className="flex-1 rounded-2xl bg-sky-500 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-sky-500/25 transition hover:bg-sky-600 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {submitting ? "Mengupload..." : "Upload Materi"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
+        </div>
+      </>
+    );
+  }
 
 // ── Main Page ────────────────────────────────────────────────────────────────
 
