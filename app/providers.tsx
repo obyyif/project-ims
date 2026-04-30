@@ -1,15 +1,12 @@
 "use client";
 
 import { AuthProvider } from "@/contexts/AuthContext";
-import AttendanceSheet from "./components/AttendanceSheet";
-import UploadMaterialSheet from "./components/UploadMaterialSheet";
+import { ErrorBoundary } from "@/app/components/ErrorBoundary";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <AuthProvider>
-      {children}
-      <AttendanceSheet />
-      <UploadMaterialSheet />
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>{children}</AuthProvider>
+    </ErrorBoundary>
   );
 }
