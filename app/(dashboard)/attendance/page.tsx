@@ -16,7 +16,7 @@ export default function AttendancePage() {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(2026);
   const [isClient, setIsClient] = useState(false);
-  const [attendances, setAttendances] = useState<any[]>([]);
+  const [attendances, setAttendances] = useState<{ id: string; status: string; date: string; schedule?: { subject?: { name?: string } } }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => setIsClient(true), []);
@@ -70,25 +70,32 @@ export default function AttendancePage() {
   const absentDates = attendances.filter(a => a.status === 'absent').map(a => new Date(a.date).getDate());
   
   const presentCount = presentDates.length || 0;
-  const sickCount = attendances.filter(a => a.status === 'sick').length || 0;
+  const lateCount = attendances.filter(a => a.status === 'late').length || 0;
   const absentCount = absentDates.length || 0;
-  const permitCount = attendances.filter(a => a.status === 'permit').length || 0;
+  const excusedCount = attendances.filter(a => a.status === 'excused').length || 0;
   
   const summaryData = [
     { label: "TOTAL HARI", value: daysInMonth, color: "text-slate-800", bg: "bg-white", border: "border-slate-200" },
     { label: "HADIR", value: presentCount, color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-100" },
-    { label: "SAKIT", value: sickCount, color: "text-amber-500", bg: "bg-amber-50", border: "border-amber-100" },
+    { label: "TERLAMBAT", value: lateCount, color: "text-amber-500", bg: "bg-amber-50", border: "border-amber-100" },
     { label: "ALPA", value: absentCount, color: "text-rose-500", bg: "bg-rose-50", border: "border-rose-100" },
   ];
 
-  // Map to activity log styling
-  const activityLog = attendances.slice(0, 5).map((a: any) => ({
-    date: new Date(a.date).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'}),
-    time: "Hadir", // API lacks time, just fallback
-    status: a.status.toUpperCase(),
-    type: "in",
-    color: a.status === 'present' ? "bg-emerald-500" : "bg-amber-500",
-  }));
+  const activityLog = attendances.slice(0, 5).map((a) => {
+    const statusMap: Record<string, { label: string; color: string }> = {
+      present: { label: "HADIR", color: "bg-emerald-500" },
+      late: { label: "TERLAMBAT", color: "bg-amber-500" },
+      absent: { label: "ALPA", color: "bg-rose-500" },
+      excused: { label: "IZIN", color: "bg-sky-500" },
+    };
+    const st = statusMap[a.status] || { label: a.status.toUpperCase(), color: "bg-slate-500" };
+    return {
+      date: new Date(a.date).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'}),
+      subject: a.schedule?.subject?.name || "-",
+      status: st.label,
+      color: st.color,
+    };
+  });
 
   if (!isClient) return null;
 
@@ -205,10 +212,12 @@ export default function AttendancePage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-bold text-slate-800">{act.date}</p>
-                    <p className="text-[11px] text-slate-400">Masuk {act.time}</p>
+                    <p className="text-[11px] text-slate-400">{act.subject}</p>
                   </div>
                   <span className={`shrink-0 rounded-lg px-2 py-1 text-[10px] font-bold ${
-                    act.status === "TEPAT WAKTU" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+                    act.status === "HADIR" ? "bg-emerald-100 text-emerald-700" : 
+                    act.status === "ALPA" ? "bg-rose-100 text-rose-700" :
+                    "bg-amber-100 text-amber-700"
                   }`}>
                     {act.status}
                   </span>
