@@ -19,22 +19,20 @@ export default function ClassroomPage() {
   useEffect(() => {
     const fetchClassroom = async () => {
       try {
-        let classroomId = user?.classroom_id;
-        
-        // If teacher, they might need to select a classroom or we fetch their primary one
-        // For simplicity, we use the first available classroom id if not in user object
-        if (!classroomId && role === 'teacher') {
-            const resSchedules = await api.get('/teacher/schedules');
-            if (resSchedules.data?.data?.length > 0) {
-                classroomId = resSchedules.data.data[0].classroom_id;
-            }
-        }
+        const ep = role === "teacher" ? "/teacher/schedules" : "/student/schedules";
+        const res = await api.get(ep);
+        const schedules = res.data?.data || [];
 
-        if (classroomId) {
-            const res = await api.get(`/classrooms/${classroomId}`);
-            if (res.data && res.data.data) {
-                setClassroomData(res.data.data);
-            }
+        if (schedules.length > 0 && schedules[0].classroom) {
+          const classroom = schedules[0].classroom;
+          // Build classroom data from schedule response
+          setClassroomData({
+            id: classroom.id,
+            name: classroom.name,
+            academic_year: classroom.academic_year || "2025/2026",
+            teacher: classroom.teacher || schedules[0].teacher || null,
+            students: classroom.students || [],
+          });
         }
       } catch (error) {
         console.error("Failed to fetch classroom data", error);
@@ -43,8 +41,8 @@ export default function ClassroomPage() {
       }
     };
 
-    if (user || role) fetchClassroom();
-  }, [user, role]);
+    if (role) fetchClassroom();
+  }, [role]);
 
   if (isLoading) {
     return <div className="text-center py-20 text-slate-400 text-sm">Memuat data kelas...</div>;
