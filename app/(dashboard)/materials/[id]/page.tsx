@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import api from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
@@ -128,29 +128,62 @@ function ImageViewer({ material }: { material: CourseMaterial }) {
 
 function VideoPlayer({ material }: { material: CourseMaterial }) {
   const fileUrl = material.file_url || material.download_url;
+  const [isBroken, setIsBroken] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   if (!fileUrl) return null;
 
+  const handleLoadedMetadata = () => {
+    const video = videoRef.current;
+    if (video && (isNaN(video.duration) || video.duration === 0)) {
+      setIsBroken(true);
+    }
+  };
+
+  const handleError = () => setIsBroken(true);
+
   return (
-    <div className="rounded-2xl overflow-hidden border border-slate-200 bg-black">
-      <video
-        controls
-        className="w-full max-h-[600px]"
-        preload="metadata"
-        crossOrigin="anonymous"
-      >
-        <source src={fileUrl} type={material.file_type || "video/mp4"} />
-        {material.subtitle_url && (
-          <track
-            kind="subtitles"
-            src={material.subtitle_url}
-            srcLang="id"
-            label="Indonesia"
-            default
-          />
-        )}
-        Browser Anda tidak mendukung pemutaran video.
-      </video>
+    <div className="space-y-2">
+      {/* 16:9 aspect ratio container */}
+      <div className="relative rounded-2xl overflow-hidden border border-slate-200 bg-black" style={{ aspectRatio: "16/9" }}>
+        <video
+          ref={videoRef}
+          controls
+          className="absolute inset-0 w-full h-full object-contain"
+          preload="metadata"
+          crossOrigin="anonymous"
+          onLoadedMetadata={handleLoadedMetadata}
+          onError={handleError}
+        >
+          <source src={fileUrl} type={material.file_type || "video/mp4"} />
+          {material.subtitle_url && (
+            <track
+              kind="subtitles"
+              src={material.subtitle_url}
+              srcLang="id"
+              label="Indonesia"
+              default
+            />
+          )}
+          Browser Anda tidak mendukung pemutaran video.
+        </video>
+      </div>
+
+      {/* Broken video warning */}
+      {isBroken && (
+        <div className="flex items-start gap-2.5 rounded-2xl bg-amber-50 border border-amber-200 px-4 py-3">
+          <svg className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+            <line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+          <div>
+            <p className="text-xs font-semibold text-amber-700">Video tidak dapat diputar</p>
+            <p className="text-[11px] text-amber-600 mt-0.5">
+              File video mungkin rusak atau formatnya tidak didukung. Silakan hubungi guru pengampu untuk mendapatkan file yang baru.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
