@@ -145,8 +145,15 @@ function UploadModal({ open, onClose, onSuccess }: { open: boolean; onClose: () 
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="relative w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={handleClose}>
+      {/* Dark scrim */}
+      <div className="absolute inset-0 bg-black/50" />
+
+      {/* Modal */}
+      <div
+        className="relative w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Close */}
         <button onClick={handleClose} className="absolute right-4 top-4 text-slate-400 hover:text-slate-600 transition">
           <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
