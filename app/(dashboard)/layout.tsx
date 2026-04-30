@@ -50,14 +50,15 @@ export default function DashboardLayout({
 
         {/* Page content — scrollable, full width */}
         <div className="flex-1 overflow-y-auto px-4 py-6 pb-24 md:px-8 md:py-8 md:pb-8">
-          <div className="animate-fade-up">
-            {children}
-          </div>
+          {children}
         </div>
       </div>
 
       {/* Mobile bottom nav */}
       <MobileNav />
+
+      {/* Portal target — overlays render here, OUTSIDE scroll container */}
+      <div id="portal-root" />
     </div>
   );
 }
