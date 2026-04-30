@@ -31,8 +31,9 @@ export default function LoginPage() {
 
     try {
       // CSRF implementation depending on Sanctum setup
-      await api.get('http://127.0.0.1:8000/sanctum/csrf-cookie').catch(() => {
-        console.warn('Failed to fetch CSRF cookie. Skipping if not using stateful sessions.');
+      const csrfUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000') + '/sanctum/csrf-cookie';
+      await api.get(csrfUrl).catch(() => {
+        console.warn('CSRF cookie not required for token-based auth.');
       });
 
       const response = await api.post("/login", {
@@ -42,7 +43,7 @@ export default function LoginPage() {
 
       if (response.data && response.data.token) {
         // Backend specifies role as "teacher" or "student" or "super_admin"
-        login(response.data.token, response.data.role as UserRole, response.data.user_data);
+        login(response.data.token, response.data.role as UserRole, response.data.user);
         router.push("/");
       } else {
         setError("Login gagal: Token tidak ditemukan dalam respon.");

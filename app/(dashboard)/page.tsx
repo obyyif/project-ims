@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import api from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import type { DashboardStat } from "@/types/api";
 
 export default function DashboardPage() {
   const { user, role } = useAuth();
@@ -11,9 +12,9 @@ export default function DashboardPage() {
   const greeting =
     currentHour < 12 ? "Selamat Pagi" : currentHour < 17 ? "Selamat Siang" : "Selamat Malam";
 
-  const [todaySchedule, setTodaySchedule] = useState<any[]>([]);
-  const [recentMaterials, setRecentMaterials] = useState<any[]>([]);
-  const [stats, setStats] = useState<any[]>([
+  const [todaySchedule, setTodaySchedule] = useState<{ id: string; title: string; time: string; location: string; subject: string; color: string }[]>([]);
+  const [recentMaterials, setRecentMaterials] = useState<{ id: string; title: string; subject: string; date: string; type: string }[]>([]);
+  const [stats, setStats] = useState<DashboardStat[]>([
     { label: "Kehadiran", value: "-", sub: "Semester ini", color: "text-emerald-600", bg: "bg-emerald-50", icon: "✓" },
     { label: "Total Materi", value: "-", sub: "Bulan ini", color: "text-sky-600", bg: "bg-sky-50", icon: "📄" },
     { label: "Jadwal Hari Ini", value: "-", sub: "Kelas aktif", color: "text-violet-600", bg: "bg-violet-50", icon: "📅" },
@@ -34,17 +35,17 @@ export default function DashboardPage() {
           // Map schedules
           const schedules = schedRes.data?.data || [];
           // In a real app we filter by `day` string or current Date
-          const mappedSchedules = schedules.map((item: any) => ({
+          const mappedSchedules = schedules.map((item: Record<string, any>) => ({
             id: item.id, title: role === "teacher" ? `Kelas ${item.classroom.name}` : `Pelajaran ${item.subject.name}`,
             time: `${item.start_time.substring(0,5)} - ${item.end_time.substring(0,5)}`,
-            location: "TBA", subject: item.subject.name, color: "from-sky-500 to-cyan-400"
+            location: item.room?.name || "TBA", subject: item.subject.name, color: "from-sky-500 to-cyan-400"
           })).slice(0, 4);
 
           setTodaySchedule(mappedSchedules);
           
           // Map materials
           const materials = matRes.data?.data || [];
-          const mappedMaterials = materials.map((item: any) => ({
+          const mappedMaterials = materials.map((item: Record<string, any>) => ({
             id: item.id, title: item.title, subject: item.schedule?.subject?.name || "Materi",
             date: "Baru", type: item.file_path ? "PDF" : "Link"
           })).slice(0, 3);
