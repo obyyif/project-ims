@@ -18,6 +18,7 @@ export default function AnnouncementsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [editTarget, setEditTarget] = useState<Announcement | null>(null);
   const [form, setForm] = useState({ title: "", body: "", priority: "normal" as AnnouncementPriority, classroom_id: "" });
   const [submitting, setSubmitting] = useState(false);
 
@@ -46,18 +47,34 @@ export default function AnnouncementsPage() {
   const handleCreate = async () => {
     setSubmitting(true);
     try {
-      await api.post("/teacher/announcements", {
-        ...form,
-        classroom_id: form.classroom_id || null,
-      });
+      if (editTarget) {
+        // PATCH existing
+        await api.patch(`/teacher/announcements/${editTarget.id}`, {
+          ...form,
+          classroom_id: form.classroom_id || null,
+        });
+      } else {
+        // POST new
+        await api.post("/teacher/announcements", {
+          ...form,
+          classroom_id: form.classroom_id || null,
+        });
+      }
       setShowForm(false);
+      setEditTarget(null);
       setForm({ title: "", body: "", priority: "normal", classroom_id: "" });
       fetchAnnouncements();
     } catch {
-      alert("Gagal membuat pengumuman.");
+      alert(editTarget ? "Gagal memperbarui pengumuman." : "Gagal membuat pengumuman.");
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleEdit = (a: Announcement) => {
+    setEditTarget(a);
+    setForm({ title: a.title, body: a.body, priority: a.priority, classroom_id: a.classroom_id ? String(a.classroom_id) : "" });
+    setShowForm(true);
   };
 
   const handleDelete = async (id: number) => {
@@ -84,7 +101,15 @@ export default function AnnouncementsPage() {
         </div>
         {isTeacher && (
           <button
-            onClick={() => setShowForm(!showForm)}
+            onClick={() => {
+              if (showForm) {
+                setShowForm(false);
+                setEditTarget(null);
+                setForm({ title: "", body: "", priority: "normal", classroom_id: "" });
+              } else {
+                setShowForm(true);
+              }
+            }}
             className="rounded-2xl bg-sky-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-sky-500/25 transition hover:bg-sky-600 active:scale-[0.98]"
           >
             {showForm ? "Batal" : "+ Buat Pengumuman"}
@@ -92,9 +117,12 @@ export default function AnnouncementsPage() {
         )}
       </div>
 
-      {/* Create Form */}
+      {/* Create / Edit Form */}
       {showForm && (
         <div className="rounded-3xl bg-white p-6 card-float space-y-4">
+          <h3 className="text-sm font-bold text-slate-700">
+            {editTarget ? "Edit Pengumuman" : "Buat Pengumuman Baru"}
+          </h3>
           <input
             placeholder="Judul pengumuman"
             value={form.title}
@@ -123,7 +151,7 @@ export default function AnnouncementsPage() {
               disabled={!form.title || !form.body || submitting}
               className="rounded-2xl bg-sky-500 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-sky-500/25 transition hover:bg-sky-600 disabled:opacity-50"
             >
-              {submitting ? "Mengirim..." : "Kirim"}
+              {submitting ? "Menyimpan..." : editTarget ? "Simpan Perubahan" : "Kirim"}
             </button>
           </div>
         </div>
@@ -165,14 +193,24 @@ export default function AnnouncementsPage() {
                     </p>
                   </div>
                   {isTeacher && (
-                    <button
-                      onClick={() => handleDelete(a.id)}
-                      className="shrink-0 rounded-xl p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition"
-                    >
-                      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
-                      </svg>
-                    </button>
+                    <div className="flex gap-1.5 shrink-0">
+                      <button
+                        onClick={() => handleEdit(a)}
+                        className="rounded-xl bg-slate-100 p-2 text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition"
+                        title="Edit pengumuman"
+                      >
+                        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                      </button>
+                      <button
+                        onClick={() => handleDelete(a.id)}
+                        className="rounded-xl p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition"
+                        title="Hapus pengumuman"
+                      >
+                        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                        </svg>
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>

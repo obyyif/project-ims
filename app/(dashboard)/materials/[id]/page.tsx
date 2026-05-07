@@ -37,15 +37,28 @@ function canPreview(m: CourseMaterial): boolean {
 }
 
 // ── File Card (Drive-style) ──
-function FileCard({ m, onPreview }: { m: CourseMaterial; onPreview: () => void }) {
+function FileCard({ m, onPreview, role }: { m: CourseMaterial; onPreview: () => void; role?: string | null }) {
   const c = CAT[m.category || "other"] || CAT.other;
   const e = ext(m.original_filename);
   const previewable = canPreview(m);
 
-  const download = (ev: React.MouseEvent) => {
+  const handleDownload = async (ev: React.MouseEvent) => {
     ev.stopPropagation();
-    const url = m.file_url || m.download_url;
-    if (url) { const a = document.createElement("a"); a.href = url; a.download = m.original_filename || "file"; a.click(); }
+    if (role === "student") {
+      // Route through proper API endpoint so token auth is applied and downloads are tracked
+      try {
+        const res = await api.get(`/student/materials/${m.id}/download`, { responseType: "blob" });
+        const blob = new Blob([res.data]);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url; a.download = m.original_filename || "file"; a.click();
+        URL.revokeObjectURL(url);
+      } catch { alert("Gagal mengunduh file."); }
+    } else {
+      // Teacher: direct URL (no tracking needed)
+      const url = m.file_url || m.download_url;
+      if (url) { const a = document.createElement("a"); a.href = url; a.download = m.original_filename || "file"; a.click(); }
+    }
   };
 
   return (
@@ -65,7 +78,7 @@ function FileCard({ m, onPreview }: { m: CourseMaterial; onPreview: () => void }
         <p className="text-xs font-semibold text-slate-900 truncate">{m.original_filename || m.title}</p>
         <div className="flex items-center justify-between mt-2">
           <span className="text-[10px] text-slate-400">{fmtSize(m.file_size)}</span>
-          <button onClick={download} className="opacity-0 group-hover:opacity-100 rounded-lg bg-sky-50 px-2 py-1 text-[10px] font-bold text-sky-600 hover:bg-sky-100 transition" title="Download">
+          <button onClick={handleDownload} className="opacity-0 group-hover:opacity-100 rounded-lg bg-sky-50 px-2 py-1 text-[10px] font-bold text-sky-600 hover:bg-sky-100 transition" title="Download">
             📥
           </button>
         </div>
@@ -291,7 +304,7 @@ export default function MaterialDetailPage({ params }: { params: Promise<{ id: s
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
               {relatedFiles.map((m) => (
-                <FileCard key={m.id} m={m} onPreview={() => setPreview(m)} />
+                <FileCard key={m.id} m={m} onPreview={() => setPreview(m)} role={role} />
               ))}
             </div>
           )}

@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import Cookies from "js-cookie";
+import axios from "axios";
 import type { UserData, UserRole } from "@/types/api";
 
 export type { UserRole, UserData };
@@ -12,6 +13,7 @@ interface AuthContextType {
   role: UserRole | null;
   login: (token: string, role: UserRole, user_data: UserData) => void;
   logout: () => void;
+  updateUser: (updated: Partial<UserData>) => void;
   isLoading: boolean;
 }
 
@@ -88,11 +90,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(newUserData);
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    // Revoke token on server first (fire-and-forget — don't block local cleanup)
+    const token = Cookies.get("lms_token");
+    if (token) {
+      try {
+        await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/logout`,
+          {},
+          { headers: { Authorization: `Bearer ${token}`, Accept: "application/json" } }
+        );
+      } catch {
+        // Server revocation failed (expired / network) — proceed with local logout anyway
+      }
+    }
+
+    // Always clear local state
     Cookies.remove("lms_token", { path: "/" });
     sessionStorage.removeItem(SESSION_USER_KEY);
     sessionStorage.removeItem(SESSION_ROLE_KEY);
-    // Also clean legacy localStorage
     localStorage.removeItem("lms_user");
     localStorage.removeItem("lms_role");
 
@@ -101,8 +117,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
   }, []);
 
+  const updateUser = useCallback((updated: Partial<UserData>) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const merged = { ...prev, ...updated };
+      sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(merged));
+      return merged;
+    });
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, role, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, role, login, logout, updateUser, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
