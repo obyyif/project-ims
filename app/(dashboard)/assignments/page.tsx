@@ -83,9 +83,11 @@ function GradingPanel({ assignmentId, maxScore }: { assignmentId: number; maxSco
     setGrading(true);
     try {
       await api.post(`/teacher/assignments/submissions/${submissionId}/grade`, { score });
-      setSubmissions((prev) =>
-        prev.map((s) => s.id === submissionId ? { ...s, score, status: "graded" } : s)
-      );
+
+      // Refetch to ensure UI reflects backend-calculated score/status
+      const res = await api.get(`/teacher/assignments/${assignmentId}`);
+      const data = res.data?.data || res.data;
+      setSubmissions(data?.submissions || []);
       setGradingId(null);
     } catch {
       alert("Gagal memberi nilai.");
@@ -157,18 +159,71 @@ function GradingPanel({ assignmentId, maxScore }: { assignmentId: number; maxSco
             )
           ) : null}
 
-          {/* Download link */}
-          {s.file_path && (
-            <a
-              href={`${process.env.NEXT_PUBLIC_API_URL}/teacher/assignments/submissions/${s.id}/download`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="shrink-0 rounded-xl bg-sky-50 px-2.5 py-1.5 text-xs font-bold text-sky-600 hover:bg-sky-100 transition"
-              title="Download file tugas"
-            >
-              📥
-            </a>
-          )}
+          {/* Download / external link */}
+          {(() => {
+            const submissionPath =
+              (s as unknown as { link_path?: string; link?: string }).link_path ??
+              (s as unknown as { link_path?: string; link?: string }).link ??
+              (s as unknown as { file_path?: string }).file_path ??
+              "";
+
+            if (!submissionPath) return null;
+
+            const isExternalLink =
+              submissionPath.startsWith("http://") ||
+              submissionPath.startsWith("https://");
+
+            if (isExternalLink) {
+              return (
+                <a
+                  href={submissionPath}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="shrink-0 rounded-xl bg-sky-50 px-2.5 py-1.5 text-xs font-bold text-sky-600 hover:bg-sky-100 transition"
+                  title="Buka Link GitHub/Tugas"
+                >
+                  Buka Link GitHub/Tugas
+                </a>
+              );
+            }
+
+            let baseUrl = process.env.NEXT_PUBLIC_STORAGE_URL;
+            if (!baseUrl && process.env.NEXT_PUBLIC_API_URL) {
+              try {
+                const apiOrigin = new URL(process.env.NEXT_PUBLIC_API_URL).origin;
+                baseUrl = `${apiOrigin}/storage`;
+              } catch {
+                baseUrl = "http://localhost:8000/storage";
+              }
+            } else {
+              baseUrl = baseUrl || "http://localhost:8000/storage";
+            }
+
+            let cleanPath = submissionPath;
+            if (cleanPath.startsWith("storage/")) {
+              cleanPath = cleanPath.replace("storage/", "");
+            }
+            if (cleanPath.startsWith("/storage/")) {
+              cleanPath = cleanPath.replace("/storage/", "");
+            }
+            if (cleanPath.startsWith("/")) {
+              cleanPath = cleanPath.slice(1);
+            }
+
+            const href = `${baseUrl.replace(/\/+$/, "")}/${cleanPath}`;
+
+            return (
+              <a
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="shrink-0 rounded-xl bg-sky-50 px-2.5 py-1.5 text-xs font-bold text-sky-600 hover:bg-sky-100 transition"
+                title="Download file tugas"
+              >
+                📥
+              </a>
+            );
+          })()}
         </div>
       ))}
     </div>
@@ -599,7 +654,12 @@ export default function AssignmentsPage() {
                       </div>
 
                       <div className="flex flex-col items-end gap-2 shrink-0">
-                        <span className="text-lg font-bold text-slate-900">{a.max_score}</span>
+                        <span className="text-lg font-bold text-slate-900">
+                          {(() => {
+                            const score = (a as unknown as { my_score?: number | string }).my_score ?? a.max_score;
+                            return score === undefined || score === null || score === "" ? "-" : String(score);
+                          })()}
+                        </span>
                         <span className="text-[10px] text-slate-400 uppercase">Poin</span>
 
                         {/* Teacher actions */}
