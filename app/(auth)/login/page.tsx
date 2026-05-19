@@ -48,11 +48,12 @@ export default function LoginPage() {
       } else {
         setError("Login gagal: Token tidak ditemukan dalam respon.");
       }
-    } catch (err: any) {
-      if (err.response && err.response.status === 401) {
+    } catch (err: unknown) {
+      const error = err as { response?: { status?: number; data?: { message?: string } } };
+      if (error.response && error.response.status === 401) {
         setError("ID atau password salah. Coba lagi.");
-      } else if (err.response && err.response.data && err.response.data.message) {
-        setError(err.response.data.message);
+      } else if (error.response?.data?.message) {
+        setError(error.response.data.message);
       } else {
         setError("Terjadi kesalahan jaringan.");
       }

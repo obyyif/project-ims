@@ -1,39 +1,61 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import api from "@/lib/api";
-import { useAuth } from "@/contexts/AuthContext";
 
-export default function AttendanceSheet() {
+interface StudentRecord {
+  id: string;
+  name: string;
+  student_number: string;
+  attendance_record?: {
+    status: string;
+  };
+}
+
+interface SheetData {
+  schedule?: {
+    subject?: { name: string };
+    classroom?: { name: string };
+  };
+  students: StudentRecord[];
+  summary?: {
+    student_count: number;
+  };
+}
+
+interface AttendanceSheetProps {
+  onSuccess?: () => void;
+}
+
+export default function AttendanceSheet({ onSuccess }: AttendanceSheetProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [scheduleId, setScheduleId] = useState<string | null>(null);
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<SheetData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [attendances, setAttendances] = useState<Record<string, string>>({});
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
 
-  useEffect(() => {
-    const handleOpen = (e: any) => {
-      setScheduleId(e.detail.scheduleId);
-      setIsOpen(true);
-      fetchSheet(e.detail.scheduleId);
-    };
+  const normalizeStatus = (value?: string) => {
+    const normalized = String(value || "").trim().toLowerCase();
+    if (normalized === "present" || normalized === "hadir") return "present";
+    if (normalized === "absent" || normalized === "alpa") return "absent";
+    if (normalized === "late" || normalized === "terlambat") return "late";
+    if (normalized === "permit" || normalized === "izin" || normalized === "excused") return "permit";
+    if (normalized === "sick" || normalized === "sakit") return "sick";
+    return "present";
+  };
 
-    window.addEventListener("open-attendance-sheet", handleOpen);
-    return () => window.removeEventListener("open-attendance-sheet", handleOpen);
-  }, []);
-
-  const fetchSheet = async (id: string) => {
+  const fetchSheet = useCallback(async (id: string, targetDate: string) => {
     setIsLoading(true);
     try {
-      const res = await api.get(`/teacher/schedules/${id}/attendance-sheet?date=${date}`);
+      const res = await api.get(`/teacher/schedules/${id}/attendance-sheet?date=${targetDate}`);
       if (res.data && res.data.data) {
         setData(res.data.data);
         // Initialize attendance map
         const initialMap: Record<string, string> = {};
-        res.data.data.students.forEach((s: any) => {
-          initialMap[s.id] = s.attendance_record?.status || "present";
+        res.data.data.students.forEach((s: StudentRecord) => {
+          initialMap[s.id] = normalizeStatus(s.attendance_record?.status);
         });
         setAttendances(initialMap);
       }
@@ -42,10 +64,31 @@ export default function AttendanceSheet() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const handleOpen = (e: Event) => {
+      const customEvent = e as CustomEvent<{ scheduleId: string }>;
+      const id = customEvent.detail.scheduleId;
+      setScheduleId(id);
+      setIsOpen(true);
+      fetchSheet(id, date);
+    };
+
+    window.addEventListener("open-attendance-sheet", handleOpen as EventListener);
+    return () => window.removeEventListener("open-attendance-sheet", handleOpen as EventListener);
+  }, [date, fetchSheet]);
 
   const handleStatusChange = (studentId: string, status: string) => {
     setAttendances(prev => ({ ...prev, [studentId]: status }));
+  };
+
+  const normalizeDate = (value: string) => {
+    if (value.includes("/")) {
+      const [day, month, year] = value.split("/");
+      return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+    }
+    return value;
   };
 
   const saveAttendance = async () => {
@@ -54,20 +97,20 @@ export default function AttendanceSheet() {
     try {
       const payload = {
         schedule_id: scheduleId,
-        date: date,
-        attendances: Object.entries(attendances).map(([id, status]) => ({
-          student_id: id,
-          status: status
+        date: normalizeDate(date),
+        students: Object.entries(attendances).map(([student_id, status]) => ({
+          student_id,
+          status
         }))
       };
       await api.post("/teacher/attendances", payload);
-      alert("Absensi berhasil disimpan!");
       setIsOpen(false);
+      onSuccess?.();
+      alert("Absensi berhasil disimpan!");
     } catch (error) {
       console.error("Failed to save attendance", error);
       alert("Gagal menyimpan absensi");
     } finally {
-      setIsSaving(true); // Wait, this should be false, fixed in next turn
       setIsSaving(false);
     }
   };
@@ -102,8 +145,9 @@ export default function AttendanceSheet() {
                 type="date" 
                 value={date} 
                 onChange={(e) => {
-                    setDate(e.target.value);
-                    if (scheduleId) fetchSheet(scheduleId);
+                    const newDate = e.target.value;
+                    setDate(newDate);
+                    if (scheduleId) fetchSheet(scheduleId, newDate);
                 }}
                 className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-sky-500 focus:bg-white transition"
               />
@@ -118,7 +162,7 @@ export default function AttendanceSheet() {
             <div className="py-20 text-center text-slate-400 text-sm">Memuat daftar siswa...</div>
           ) : (
             <div className="space-y-3">
-              {data?.students?.map((student: any) => (
+              {data?.students?.map((student: StudentRecord) => (
                 <div key={student.id} className="flex items-center gap-4 p-4 rounded-2xl bg-white border border-slate-100 hover:bg-slate-50/50 transition">
                   <div className="h-10 w-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 text-sm font-bold shrink-0">
                     {student.name.charAt(0)}
@@ -131,6 +175,7 @@ export default function AttendanceSheet() {
                     {[
                       { id: 'present', label: 'Hadir', color: 'peer-checked:bg-emerald-500 peer-checked:text-white bg-emerald-50 text-emerald-600' },
                       { id: 'absent', label: 'Alpa', color: 'peer-checked:bg-rose-500 peer-checked:text-white bg-rose-50 text-rose-600' },
+                      { id: 'permit', label: 'Izin', color: 'peer-checked:bg-sky-500 peer-checked:text-white bg-sky-50 text-sky-600' },
                       { id: 'sick', label: 'Sakit', color: 'peer-checked:bg-amber-500 peer-checked:text-white bg-amber-50 text-amber-600' },
                     ].map((status) => (
                       <label key={status.id} className="cursor-pointer">

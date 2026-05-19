@@ -39,7 +39,7 @@ interface SidebarProps {
 
 export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
-  const { user, role, logout } = useAuth();
+  const { role, logout } = useAuth();
 
   const navItems = role === "teacher" ? teacherNav : studentNav;
 

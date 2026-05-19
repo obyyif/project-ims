@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import api from "@/lib/api";
+import type { Schedule } from "@/types/api";
+import AttendanceSheet from "@/app/components/AttendanceSheet";
 
 const days = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"];
 
@@ -17,40 +19,50 @@ const colorMap: Record<string, string> = {
 export default function SchedulePage() {
   const { role } = useAuth();
   const [activeDay, setActiveDay] = useState("Senin");
-  const [scheduleData, setScheduleData] = useState<{ id: string; day: string; title: string; time: string; location: string; subject: string; teacher: string }[]>([]);
+  const [scheduleData, setScheduleData] = useState<{ id: string; day: string; title: string; time: string; location: string; subject: string; teacher: string; has_attended?: boolean }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchSchedules = async () => {
-      try {
-        const endpoint = role === "teacher" 
-          ? "/teacher/schedules" 
-          : "/student/schedules";
-          
-        const response = await api.get(endpoint);
+  const fetchSchedules = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const endpoint = role === "teacher" 
+        ? "/teacher/schedules" 
+        : "/student/schedules";
         
-        // Map the backend data to frontend format
-        if (response.data && response.data.data) {
-          const mapped = response.data.data.map((item: any) => ({
-            id: item.id,
-            day: item.day,
-            title: role === "teacher" ? `Kelas ${item.classroom.name}` : `Pelajaran ${item.subject.name}`,
-            time: `${item.start_time.substring(0,5)} - ${item.end_time.substring(0,5)}`,
-            location: item.room?.name || "Belum ditentukan",
-            subject: item.subject.name,
-            teacher: role === "teacher" ? "Anda" : (item.teacher?.name || "Guru"),
-          }));
-          setScheduleData(mapped);
-        }
-      } catch (error) {
-        console.error("Failed to fetch schedules", error);
-      } finally {
-        setIsLoading(false);
+      const response = await api.get(endpoint);
+      
+      // Map the backend data to frontend format
+      if (response.data && response.data.data) {
+        const mapped = response.data.data.map((item: Schedule & Record<string, unknown>) => ({
+          id: String(item.id),
+          day: item.day,
+          title: role === "teacher" ? `Kelas ${item.classroom?.name}` : `Pelajaran ${item.subject?.name}`,
+          time: `${item.start_time.substring(0,5)} - ${item.end_time.substring(0,5)}`,
+          location: item.room?.name || "Belum ditentukan",
+          subject: item.subject?.name || "Unknown",
+          teacher: role === "teacher" ? "Anda" : (item.teacher?.name || "Guru"),
+          has_attended: Boolean(
+            item.has_attended ||
+            item.is_attended ||
+            item.attendance_record ||
+            item.attendance ||
+            item.today_attendance ||
+            item.today_attendance_status ||
+            item.attended
+          ),
+        }));
+        setScheduleData(mapped);
       }
-    };
-
-    if (role) fetchSchedules();
+    } catch (error) {
+      console.error("Failed to fetch schedules", error);
+    } finally {
+      setIsLoading(false);
+    }
   }, [role]);
+
+  useEffect(() => {
+    if (role) fetchSchedules();
+  }, [role, fetchSchedules]);
 
   const filtered = scheduleData.filter((s) => s.day === activeDay);
 
@@ -132,9 +144,9 @@ export default function SchedulePage() {
                         // This should open the attendance modal
                         window.dispatchEvent(new CustomEvent('open-attendance-sheet', { detail: { scheduleId: item.id } }));
                     }}
-                    className="shrink-0 rounded-xl bg-sky-500 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-sky-500/20 transition hover:bg-sky-600 active:scale-95"
+                    className={`shrink-0 rounded-xl px-4 py-2 text-xs font-bold text-white shadow-lg transition active:scale-95 ${item.has_attended ? "bg-emerald-500 shadow-emerald-500/20 hover:bg-emerald-600" : "bg-sky-500 shadow-sky-500/20 hover:bg-sky-600"}`}
                   >
-                    Absen
+                    {item.has_attended ? "✓ Edit Absen" : "Absen"}
                   </button>
                 )}
               </div>
@@ -142,6 +154,7 @@ export default function SchedulePage() {
           ))
         )}
       </div>
+      <AttendanceSheet onSuccess={fetchSchedules} />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import api from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
@@ -237,15 +237,15 @@ export default function MaterialsPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [editTarget, setEditTarget] = useState<CourseMaterial | null>(null);
 
-  const fetchMaterials = () => {
+  const fetchMaterials = useCallback(() => {
     const ep = isTeacher ? "/teacher/materials" : "/student/materials";
     return api.get(ep)
       .then((r) => setMaterials(r.data?.data || []))
       .catch((err) => console.error("Failed to fetch materials", err))
       .finally(() => setIsLoading(false));
-  };
+  }, [isTeacher]);
 
-  useEffect(() => { if (role) fetchMaterials(); }, [role]);
+  useEffect(() => { if (role) fetchMaterials(); }, [role, fetchMaterials]);
 
   const handleDelete = async (ids: string[]) => {
     if (!confirm(`Hapus ${ids.length} file materi ini?`)) return;

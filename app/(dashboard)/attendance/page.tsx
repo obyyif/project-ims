@@ -30,8 +30,8 @@ type AttendanceSheet = {
   schedule_id: string;
   present: number;
   absent: number;
-  late: number;
-  excused: number;
+  permit: number;
+  sick: number;
   total: number;
 };
 
@@ -72,7 +72,7 @@ export default function AttendancePage() {
           setSchedules(list);
           // Auto-select first schedule
           if (list.length > 0) {
-            setSelectedScheduleId(list[0].id);
+            setSelectedScheduleId(String(list[0].id));
           }
         }
       } catch (error) {
@@ -93,17 +93,33 @@ export default function AttendancePage() {
       setLoadingSheet(true);
       try {
         const res = await api.get(`/teacher/schedules/${selectedScheduleId}/attendance-sheet`);
-        const d = res.data?.data || res.data;
-        // Normalize to summary counts
-        const rows: { status: string }[] = Array.isArray(d) ? d : (d?.attendances || []);
-        const counts = { present: 0, absent: 0, late: 0, excused: 0, total: rows.length };
-        rows.forEach((r) => {
-          if (r.status === "present") counts.present++;
-          else if (r.status === "absent") counts.absent++;
-          else if (r.status === "late") counts.late++;
-          else if (r.status === "excused") counts.excused++;
+        
+        // Direct mapping based on backend blueprint:
+        // response.data.data.students || response.data.students
+        const students = res.data?.data?.students || res.data?.students || [];
+
+        let present = 0;
+        let permit = 0;
+        let sick = 0;
+        let absent = 0;
+
+        students.forEach((student: Record<string, unknown>) => {
+          const status = String(student.status || "").toLowerCase();
+          if (status === "present" || status === "hadir") present++;
+          else if (status === "permit" || status === "izin") permit++;
+          else if (status === "sick" || status === "sakit") sick++;
+          else if (status === "absent" || status === "alpa") absent++;
         });
-        setAttendanceSheet({ schedule_id: selectedScheduleId, ...counts });
+
+        // Set the state that controls the 4 recap cards
+        setAttendanceSheet({
+          schedule_id: selectedScheduleId,
+          present,
+          permit,
+          sick,
+          absent,
+          total: students.length,
+        });
       } catch (error) {
         console.error("Failed to fetch attendance sheet", error);
         setAttendanceSheet(null);
@@ -132,20 +148,32 @@ export default function AttendancePage() {
   };
 
   // ── Student calendar data ──
-  const presentDates = attendances.filter((a) => a.status === "present").map((a) => new Date(a.date).getDate());
-  const absentDates = attendances.filter((a) => a.status === "absent").map((a) => new Date(a.date).getDate());
+  const normalizeStatusValue = (value?: string) => {
+    const normalized = String(value || "").trim().toLowerCase();
+    if (normalized === "present" || normalized === "hadir") return "present";
+    if (normalized === "absent" || normalized === "alpa") return "absent";
+    if (normalized === "late" || normalized === "terlambat") return "late";
+    if (normalized === "permit" || normalized === "izin" || normalized === "excused") return "permit";
+    if (normalized === "sick" || normalized === "sakit") return "sick";
+    return normalized;
+  };
+
+  const presentDates = attendances.filter((a) => normalizeStatusValue(a.status) === "present").map((a) => new Date(a.date).getDate());
+  const absentDates = attendances.filter((a) => normalizeStatusValue(a.status) === "absent").map((a) => new Date(a.date).getDate());
   const presentCount = presentDates.length;
-  const lateCount = attendances.filter((a) => a.status === "late").length;
+  const lateCount = attendances.filter((a) => normalizeStatusValue(a.status) === "late").length;
   const absentCount = absentDates.length;
 
   const activityLog = attendances.slice(0, 5).map((a) => {
+    const status = normalizeStatusValue(a.status);
     const statusMap: Record<string, { label: string; color: string }> = {
       present: { label: "HADIR", color: "bg-emerald-500" },
       late: { label: "TERLAMBAT", color: "bg-amber-500" },
       absent: { label: "ALPA", color: "bg-rose-500" },
-      excused: { label: "IZIN", color: "bg-sky-500" },
+      permit: { label: "IZIN", color: "bg-sky-500" },
+      sick: { label: "SAKIT", color: "bg-amber-500" },
     };
-    const st = statusMap[a.status] || { label: a.status.toUpperCase(), color: "bg-slate-500" };
+    const st = statusMap[status] || { label: a.status.toUpperCase(), color: "bg-slate-500" };
     return {
       date: new Date(a.date).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }),
       subject: a.schedule?.subject?.name || "-",
@@ -208,10 +236,10 @@ export default function AttendancePage() {
             {attendanceSheet ? (
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[
-                  { label: "TOTAL", value: attendanceSheet.total, color: "text-slate-800", bg: "bg-slate-50", border: "border-slate-200" },
-                  { label: "HADIR", value: attendanceSheet.present, color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-100" },
-                  { label: "ALPA", value: attendanceSheet.absent, color: "text-rose-500", bg: "bg-rose-50", border: "border-rose-100" },
-                  { label: "TERLAMBAT", value: attendanceSheet.late, color: "text-amber-500", bg: "bg-amber-50", border: "border-amber-100" },
+                  { label: "HADIR", value: attendanceSheet?.present ?? 0, color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-100" },
+                  { label: "IZIN", value: attendanceSheet?.permit ?? 0, color: "text-sky-600", bg: "bg-sky-50", border: "border-sky-100" },
+                  { label: "SAKIT", value: attendanceSheet?.sick ?? 0, color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-100" },
+                  { label: "ALPA", value: attendanceSheet?.absent ?? 0, color: "text-rose-500", bg: "bg-rose-50", border: "border-rose-100" },
                 ].map((item) => (
                   <div key={item.label} className={`rounded-2xl ${item.bg} border ${item.border} p-4`}>
                     <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{item.label}</p>
@@ -222,6 +250,14 @@ export default function AttendancePage() {
             ) : !loadingSheet ? (
               <p className="text-sm text-slate-400 italic text-center py-6">Belum ada data kehadiran untuk jadwal ini.</p>
             ) : null}
+            {attendanceSheet && (
+              <div className="mt-4 flex justify-end">
+                <div className="rounded-2xl bg-slate-100 border border-slate-200 p-4 w-full sm:w-48">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Total Peserta</p>
+                  <p className="mt-1 text-2xl font-bold text-slate-800">{attendanceSheet?.total ?? 0}</p>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -339,6 +375,7 @@ export default function AttendancePage() {
                     <span className={`shrink-0 rounded-lg px-2 py-1 text-[10px] font-bold ${
                       act.status === "HADIR" ? "bg-emerald-100 text-emerald-700"
                       : act.status === "ALPA" ? "bg-rose-100 text-rose-700"
+                      : act.status === "IZIN" ? "bg-sky-100 text-sky-700"
                       : "bg-amber-100 text-amber-700"
                     }`}>{act.status}</span>
                   </div>

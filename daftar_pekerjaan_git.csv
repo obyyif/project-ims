@@ -1,0 +1,50 @@
+Modul,Epic,Jenis,User Story,Divisi,Programmer,Status,Note
+Projek,Dokumentasi,Docs,Memperluas AGENTS.md dengan panduan proyek komprehensif (struktur folder + aturan koding),Frontend,Fadlan,Done,-
+Halaman,Teacher CRUD,Add,"Integrasi akhir UUID-fix dan Teacher Power CRUD (edit/hapus materi, nilai tugas, edit pengumuman)",Frontend,Fadlan,Done,-
+Halaman,Login,Fix,Perbaikan URL login CSRF dan penyelarasan response key dari backend,Frontend,Fadlan,Done,-
+Halaman,Login,Add,Implementasi halaman login dengan autentikasi Bearer token,Frontend,Fadlan,Done,-
+Projek,Konfigurasi,Chore,Penambahan .env.example dan pembaruan konfigurasi .gitignore,Frontend,Obyyif,Done,-
+Projek,Dokumentasi,Docs,Penambahan pelacakan riwayat commit per anggota tim,Frontend,Obyyif,Done,-
+Halaman,Classroom & Tugas,Add,"Implementasi halaman detail kelas, tugas, detail tugas, dan materi pembelajaran",Frontend,Obyyif,Done,-
+Halaman,Materi,Add,Implementasi galeri file bergaya Google Drive pada halaman materi,Frontend,Obyyif,Done,-
+Halaman,Notifikasi & Profil,Add,"Implementasi sistem notifikasi, dropdown profil, dan navigasi grup materi",Frontend,Obyyif,Done,-
+Halaman,Jadwal & Kehadiran,Fix,Perbaikan tampilan ruangan di jadwal dan pemetaan status kehadiran,Frontend,Obyyif,Done,-
+Halaman,Dashboard,Fix,Pelebaran area konten dashboard dari max-w-6xl menjadi max-w-7xl,Frontend,Obyyif,Done,-
+Halaman,UI Detail,Fix,Pembaruan detail tampilan antarmuka dashboard,Frontend,Obyyif,Done,-
+Halaman,Materi,Refactor,"Refactoring navigasi materi 2-level dengan placeholder emoji dan sistem Portal",Frontend,Obyyif,Done,-
+Halaman,Sidebar,Refactor,Refactoring sidebar collapsible dan layout konten fluid,Frontend,Obyyif,Done,-
+Halaman,Materi,Add,Implementasi manajer materi bergaya Google Drive dengan pengelompokan file otomatis,Frontend,Maulud,Done,-
+Halaman,Tugas,Add,Penulisan ulang halaman Tugas dengan integrasi API penuh (submit + status),Frontend,Maulud,Done,-
+Halaman,Detail Materi,Add,"Implementasi viewer materi lengkap dengan pratinjau berbasis kategori (PDF, video, gambar)",Frontend,Maulud,Done,-
+Halaman,Detail Materi,Fix,Perbaikan pemutar video dengan rasio aspek 16:9 dan deteksi video rusak,Frontend,Maulud,Done,-
+Projek,Inisialisasi,Add,Inisialisasi proyek dari Create Next App (setup awal),Frontend,Maulud,Done,-
+Halaman,Dashboard & Profil,Add,Penambahan detail konten pada halaman dashboard dan profil,Frontend,Maulud,Done,-
+Projek,Merge,Fix,Penggabungan Pull Request #1 dari branch nino ke main,Frontend,Maulud,Done,-
+API,Autentikasi,Add,"Penguatan keamanan autentikasi — sessionStorage, secure cookies, error handling",Frontend,Maulud,Done,-
+Projek,Dokumentasi,Docs,Penambahan aturan distribusi commit untuk tim frontend,Frontend,Nino,Done,-
+Projek,Dokumentasi,Docs,"Penambahan README lengkap dengan panduan setup, tech stack, dan endpoint API",Frontend,Nino,Done,-
+Halaman,Detail Materi,Add,Koneksi halaman Detail Materi ke API dengan fitur unduhan file,Frontend,Nino,Done,-
+Halaman,UI Refactoring,Add,Refactoring total UI dan integrasi penuh API Selaju LMS,Frontend,Nino,Done,-
+Projek,Inisialisasi,Add,Commit pertama setup awal repositori,Frontend,Nino,Done,-
+Halaman,Modal,Fix,Perbaikan rendering overlay modal — dark scrim dengan pola Fragment yang benar,Frontend,Nino,Done,-
+Projek,Inisialisasi,Add,Commit awal versi bersih untuk branch Putra,Frontend,Nino,Done,-
+Projek,Konfigurasi,Chore,Pembaruan package-lock.json setelah sinkronisasi dependensi,Frontend,Asti,Done,-
+API,Type Definitions,Add,Penambahan definisi tipe TypeScript lengkap untuk seluruh entitas API,Frontend,Asti,Done,-
+Halaman,Subjects & Profil,Add,Koneksi halaman Subjects dan Profile ke endpoint API backend,Frontend,Asti,Done,-
+Halaman,Classroom & Kehadiran,Add,"Implementasi anggota kelas dinamis, pencatatan kehadiran, dan upload materi",Frontend,Asti,Done,-
+Projek,Merge,Fix,Penyelesaian konflik merge pada README.md,Frontend,Asti,Done,-
+Halaman,Modal,Fix,Perbaikan overlay modal — menggunakan scrim gelap bersih tanpa backdrop-blur,Frontend,Asti,Done,-
+Projek,Merge,Fix,Penyelesaian konflik merge dari branch Putra,Frontend,Asti,Done,-
+Projek,Dokumentasi,Docs,Pembaruan MEMBERS.md dengan daftar lengkap anggota tim,Frontend,Ricky,Done,-
+Halaman,Komponen Global,Add,"Implementasi komponen ErrorBoundary, LoadingSpinner, EmptyState, ApiError",Frontend,Ricky,Done,-
+Halaman,Upload Materi,Add,Implementasi modal upload materi fungsional dengan fitur drag-and-drop,Frontend,Ricky,Done,-
+Halaman,Pengumuman,Add,Penggantian halaman Pesan dengan halaman Pengumuman terintegrasi API,Frontend,Ricky,Done,-
+Halaman,Kelas,Fix,Perbaikan halaman kelas menggunakan endpoint jadwal dan properti Image sizes,Frontend,Ricky,Done,-
+Projek,Inisialisasi,Add,Setup awal modul detail halaman (Initial commit),Frontend,Ricky,Done,-
+Halaman,UI Detail,Fix,Pembaruan bahasa antarmuka dan penghapusan border di halaman pesan dan kehadiran,Frontend,Ricky,Done,-
+Projek,Konfigurasi,Fix,Pembersihan folder lms-melesat yang kosong dari repositori,Frontend,Syam,Done,-
+Halaman,Login & Pengumuman,Fix,Perbaikan UX halaman login dan penanganan error pada pengumuman,Frontend,Syam,Done,-
+Halaman,Login & Dashboard,Add,"Pembuatan tampilan halaman login, dashboard, dan profil untuk role Guru",Frontend,Syam,Done,-
+API,Type & Sidebar,Refactor,Refactoring — penambahan tipe Assignment/Announcement dan navigasi sidebar berbasis role,Frontend,Syam,Done,-
+Halaman,Upload Materi,Refactor,Refactoring — penggantian modal upload dengan halaman /materials/upload tersendiri,Frontend,Syam,Done,-
+API,Error Handling,Refactor,Refactoring — pembungkusan providers dengan ErrorBoundary untuk penanganan error global,Frontend,Syam,Done,-

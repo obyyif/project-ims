@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import api from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Schedule, Subject } from "@/types/api";
@@ -16,7 +16,7 @@ export default function SubjectsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const fetchSubjects = async () => {
+  const fetchSubjects = useCallback(async () => {
     try {
       const endpoint = role === "teacher" ? "/teacher/schedules" : "/student/schedules";
       const res = await api.get(endpoint);
@@ -27,18 +27,18 @@ export default function SubjectsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [role]);
 
   useEffect(() => {
     if (role) fetchSubjects();
-  }, [role]);
+  }, [role, fetchSubjects]);
 
   // Extract unique subjects with associated classrooms and teacher
   const subjects = useMemo(() => {
     const map = new Map<string, { subject: Subject; classrooms: string[]; teacher?: string; days: string[] }>();
     schedules.forEach((s) => {
       if (!s.subject) return;
-      const key = s.subject.id;
+      const key = String(s.subject.id);
       if (map.has(key)) {
         const existing = map.get(key)!;
         const classroomName = s.classroom?.name || "";
@@ -79,11 +79,9 @@ export default function SubjectsPage() {
   const SubjectGrid = ({
     items,
     title,
-    color,
   }: {
     items: typeof subjects;
     title: string;
-    color: string;
   }) => (
     <section>
       <div className="flex items-center gap-3 mb-4">
@@ -155,8 +153,8 @@ export default function SubjectsPage() {
         />
       ) : (
         <>
-          <SubjectGrid items={vocational} title="Mata Pelajaran Kejuruan" color="from-sky-500 to-cyan-400" />
-          <SubjectGrid items={general} title="Mata Pelajaran Umum" color="from-violet-500 to-purple-400" />
+          <SubjectGrid items={vocational} title="Mata Pelajaran Kejuruan" />
+          <SubjectGrid items={general} title="Mata Pelajaran Umum" />
         </>
       )}
     </div>

@@ -10,13 +10,14 @@ import { createPortal } from "react-dom";
  * Use for: modals, overlays, context menus, tooltips, floating bars.
  */
 export default function Portal({ children }: { children: React.ReactNode }) {
-  const [target, setTarget] = useState<HTMLElement | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setTarget(document.getElementById("portal-root"));
+    const frame = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(frame);
   }, []);
 
-  if (!target) return null;
+  if (!mounted) return null;
 
-  return createPortal(children, target);
+  return createPortal(children, document.getElementById("portal-root")!);
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import api from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Assignment, AssignmentSubmission, SubmissionStatus, AssignmentType } from "@/types/api";
@@ -492,7 +492,7 @@ export default function AssignmentsPage() {
   const fileRef = useRef<HTMLInputElement>(null);
   const isTeacher = role === "teacher";
 
-  const fetchAssignments = async () => {
+  const fetchAssignments = useCallback(async () => {
     try {
       const endpoint = isTeacher ? "/teacher/assignments" : "/student/assignments";
       const res = await api.get(endpoint);
@@ -503,9 +503,9 @@ export default function AssignmentsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [isTeacher]);
 
-  useEffect(() => { if (role) fetchAssignments(); }, [role]);
+  useEffect(() => { if (role) fetchAssignments(); }, [role, fetchAssignments]);
 
   // Student: submit
   const handleSubmit = async (assignmentId: number) => {

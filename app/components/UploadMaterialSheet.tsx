@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react";
 import api from "@/lib/api";
-import { useAuth } from "@/contexts/AuthContext";
+import type { Schedule } from "@/types/api";
 
 export default function UploadMaterialSheet() {
   const [isOpen, setIsOpen] = useState(false);
-  const [schedules, setSchedules] = useState<any[]>([]);
+  const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [isLoadingSchedules, setIsLoadingSchedules] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -56,7 +56,8 @@ export default function UploadMaterialSheet() {
       formData.append("title", title);
       formData.append("description", description);
       formData.append("schedule_id", selectedScheduleId);
-      formData.append("classroom_id", selectedSchedule?.classroom?.id);
+      formData.append("classroom_id", String(selectedSchedule?.classroom?.id || ""));
+      formData.append("subject_id", String(selectedSchedule?.subject?.id || ""));
       formData.append("file", file);
       formData.append("is_published", "1");
 
